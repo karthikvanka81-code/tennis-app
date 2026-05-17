@@ -14,7 +14,7 @@ export default function TournamentList({ user }) {
   useEffect(() => {
     fetchTournaments()
     fetchJoinedTournaments()
-  }, [user, fetchTournaments, fetchJoinedTournaments])
+  }, [user]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchTournaments = async () => {
     try {

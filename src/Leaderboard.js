@@ -12,7 +12,7 @@ export default function Leaderboard({ user }) {
 
   useEffect(() => {
     fetchData()
-  }, [user, fetchData])
+  }, [user]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchData = async () => {
     try {
