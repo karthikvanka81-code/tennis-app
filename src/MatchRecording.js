@@ -79,7 +79,7 @@ export default function MatchRecording({ user }) {
 
       const winnerId = p1Score > p2Score ? player1Id : player2Id
 
-      const { data, error: insertError } = await supabase
+      const { error: insertError } = await supabase
         .from('matches')
         .insert([
           {

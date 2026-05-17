@@ -11,7 +11,7 @@ function App() {
   // Check if user is logged in when app starts
   useEffect(() => {
     const checkUser = async () => {
-      const { data: { user: currentUser }, error } = await supabase.auth.getUser()
+      const { data: { user: currentUser } } = await supabase.auth.getUser()
       
       if (currentUser) {
         setUser(currentUser)

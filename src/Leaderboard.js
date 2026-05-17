@@ -12,7 +12,7 @@ export default function Leaderboard({ user }) {
 
   useEffect(() => {
     fetchData()
-  }, [user])
+  }, [user, fetchData])
 
   const fetchData = async () => {
     try {

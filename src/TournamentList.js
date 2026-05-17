@@ -14,7 +14,7 @@ export default function TournamentList({ user }) {
   useEffect(() => {
     fetchTournaments()
     fetchJoinedTournaments()
-  }, [user])
+  }, [user, fetchTournaments, fetchJoinedTournaments])
 
   const fetchTournaments = async () => {
     try {
