@@ -1,151 +1,217 @@
 import { useState, useEffect } from 'react'
 import { supabase } from './supabaseClient'
+import { advanceKnockoutWinner } from './MatchGeneration'
 import './Match.css'
 
+const EMPTY_SETS = { s1p1: '', s1p2: '', s2p1: '', s2p2: '', s3p1: '', s3p2: '' }
+
+function calcWinner(sets, p1Id, p2Id) {
+  let p1Sets = 0, p2Sets = 0
+  if (sets.s1p1 !== '' && sets.s1p2 !== '') {
+    if (parseInt(sets.s1p1) > parseInt(sets.s1p2)) p1Sets++; else p2Sets++
+  }
+  if (sets.s2p1 !== '' && sets.s2p2 !== '') {
+    if (parseInt(sets.s2p1) > parseInt(sets.s2p2)) p1Sets++; else p2Sets++
+  }
+  if (p1Sets < 2 && p2Sets < 2 && sets.s3p1 !== '' && sets.s3p2 !== '') {
+    if (parseInt(sets.s3p1) > parseInt(sets.s3p2)) p1Sets++; else p2Sets++
+  }
+  if (p1Sets >= 2) return { winnerId: p1Id, p1Sets, p2Sets }
+  if (p2Sets >= 2) return { winnerId: p2Id, p1Sets, p2Sets }
+  return null
+}
+
 export default function MatchRecording({ user }) {
-  const [allUsers, setAllUsers] = useState([])
+  const [userMap, setUserMap] = useState({})
   const [tournaments, setTournaments] = useState([])
-  const [player1Id, setPlayer1Id] = useState('')
-  const [player2Id, setPlayer2Id] = useState('')
-  const [player1Score, setPlayer1Score] = useState('')
-  const [player2Score, setPlayer2Score] = useState('')
   const [tournamentId, setTournamentId] = useState('')
+  const [pendingMatches, setPendingMatches] = useState([])
+  const [selectedMatch, setSelectedMatch] = useState(null)
+  const [sets, setSets] = useState(EMPTY_SETS)
   const [loading, setLoading] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
 
   useEffect(() => {
-    fetchData()
-  }, [user])
+    fetchInitialData()
+  }, [user]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const fetchData = async () => {
-    try {
-      const { data: users, error: usersError } = await supabase
-        .from('users')
+  const fetchInitialData = async () => {
+    const { data: users } = await supabase.from('users').select('id, name')
+    if (users) {
+      const map = {}
+      users.forEach(u => { map[u.id] = u.name })
+      setUserMap(map)
+    }
+
+    const { data: parts } = await supabase
+      .from('tournament_participants')
+      .select('tournament_id')
+      .eq('user_id', user.id)
+
+    if (parts && parts.length > 0) {
+      const ids = parts.map(p => p.tournament_id)
+      const { data: tourns } = await supabase
+        .from('tournaments')
         .select('*')
-
-      if (!usersError && users) {
-        setAllUsers(users)
-      }
-
-      const { data: participations, error: particError } = await supabase
-        .from('tournament_participants')
-        .select('tournament_id')
-        .eq('user_id', user.id)
-
-      if (!particError && participations) {
-        const tournamentIds = participations.map((p) => p.tournament_id)
-        
-        if (tournamentIds.length > 0) {
-          const { data: tourns, error: tournsError } = await supabase
-            .from('tournaments')
-            .select('*')
-            .in('id', tournamentIds)
-
-          if (!tournsError && tourns) {
-            setTournaments(tourns)
-            if (tourns.length > 0) {
-              setTournamentId(tourns[0].id)
-            }
-          }
+        .in('id', ids)
+        .eq('status', 'active')
+        .order('created_at', { ascending: false })
+      if (tourns) {
+        setTournaments(tourns)
+        if (tourns.length > 0) {
+          setTournamentId(tourns[0].id)
+          fetchPendingMatches(tourns[0].id)
+          return
         }
       }
-
-      setLoading(false)
-    } catch (err) {
-      setError(`Error: ${err.message}`)
-      setLoading(false)
     }
+    setLoading(false)
   }
 
-  const handleRecordMatch = async (e) => {
-    e.preventDefault()
+  const fetchPendingMatches = async (tid) => {
+    setLoading(true)
+    setPendingMatches([])
+    setSelectedMatch(null)
+    setSets(EMPTY_SETS)
+
+    if (!tid) { setLoading(false); return }
+
+    const { data } = await supabase
+      .from('matches')
+      .select('*')
+      .eq('tournament_id', tid)
+      .eq('match_status', 'pending')
+      .not('player1_id', 'is', null)
+      .not('player2_id', 'is', null)
+      .order('round', { ascending: true })
+      .order('match_order', { ascending: true })
+
+    setPendingMatches(data || [])
+    setLoading(false)
+  }
+
+  const handleTournamentChange = (tid) => {
+    setTournamentId(tid)
     setError('')
     setSuccess('')
+    fetchPendingMatches(tid)
+  }
 
-    if (!player1Id || !player2Id || !player1Score || !player2Score) {
-      setError('Please fill in all fields')
+  const handleMatchSelect = (match) => {
+    setSelectedMatch(match)
+    setSets(EMPTY_SETS)
+    setError('')
+    setSuccess('')
+  }
+
+  const setVal = (key, val) => setSets(prev => ({ ...prev, [key]: val }))
+
+  const needsSet3 = () => {
+    const { s1p1, s1p2, s2p1, s2p2 } = sets
+    if (s1p1 === '' || s2p1 === '') return false
+    const p1 = (parseInt(s1p1) > parseInt(s1p2) ? 1 : 0) + (parseInt(s2p1) > parseInt(s2p2) ? 1 : 0)
+    const p2 = (parseInt(s1p2) > parseInt(s1p1) ? 1 : 0) + (parseInt(s2p2) > parseInt(s2p1) ? 1 : 0)
+    return p1 === 1 && p2 === 1
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setError('')
+    if (!selectedMatch) { setError('Select a match to record'); return }
+    if (!sets.s1p1 || !sets.s1p2 || !sets.s2p1 || !sets.s2p2) {
+      setError('Enter scores for at least Set 1 and Set 2')
       return
     }
 
-    if (player1Id === player2Id) {
-      setError('Players must be different')
-      return
-    }
+    const result = calcWinner(sets, selectedMatch.player1_id, selectedMatch.player2_id)
+    if (!result) { setError('Cannot determine winner — check set scores'); return }
 
+    const { winnerId, p1Sets, p2Sets } = result
+    const loserId = winnerId === selectedMatch.player1_id ? selectedMatch.player2_id : selectedMatch.player1_id
+
+    setSubmitting(true)
     try {
-      const p1Score = parseInt(player1Score)
-      const p2Score = parseInt(player2Score)
-
-      const winnerId = p1Score > p2Score ? player1Id : player2Id
-
-      const { error: insertError } = await supabase
-        .from('matches')
-        .insert([
-          {
-            tournament_id: tournamentId,
-            player1_id: player1Id,
-            player2_id: player2Id,
-            player1_score: p1Score,
-            player2_score: p2Score,
-            winner_id: winnerId,
-          },
-        ])
-        .select()
-
-      if (insertError) {
-        setError(`Error recording match: ${insertError.message}`)
-        return
+      const updatePayload = {
+        set1_player1: parseInt(sets.s1p1),
+        set1_player2: parseInt(sets.s1p2),
+        set2_player1: parseInt(sets.s2p1),
+        set2_player2: parseInt(sets.s2p2),
+        winner_id: winnerId,
+        match_status: 'completed',
+        player1_score: p1Sets,
+        player2_score: p2Sets,
+      }
+      if (sets.s3p1 !== '' && sets.s3p2 !== '') {
+        updatePayload.set3_player1 = parseInt(sets.s3p1)
+        updatePayload.set3_player2 = parseInt(sets.s3p2)
       }
 
-      if (tournamentId) {
-        const { data: winnerData } = await supabase
+      const { error: updateErr } = await supabase
+        .from('matches')
+        .update(updatePayload)
+        .eq('id', selectedMatch.id)
+
+      if (updateErr) { setError(updateErr.message); setSubmitting(false); return }
+
+      // Award points (10 per set won) and update wins/losses
+      const { data: winnerPart } = await supabase
+        .from('tournament_participants')
+        .select('wins, points')
+        .eq('tournament_id', tournamentId)
+        .eq('user_id', winnerId)
+        .single()
+
+      if (winnerPart) {
+        await supabase
           .from('tournament_participants')
-          .select('wins, losses')
+          .update({ wins: winnerPart.wins + 1, points: (winnerPart.points || 0) + p1Sets * 10 })
           .eq('tournament_id', tournamentId)
           .eq('user_id', winnerId)
-          .single()
-
-        if (winnerData) {
-          await supabase
-            .from('tournament_participants')
-            .update({ wins: winnerData.wins + 1 })
-            .eq('tournament_id', tournamentId)
-            .eq('user_id', winnerId)
-        }
-
-        const loserId = winnerId === player1Id ? player2Id : player1Id
-        const { data: loserData } = await supabase
-          .from('tournament_participants')
-          .select('wins, losses')
-          .eq('tournament_id', tournamentId)
-          .eq('user_id', loserId)
-          .single()
-
-        if (loserData) {
-          await supabase
-            .from('tournament_participants')
-            .update({ losses: loserData.losses + 1 })
-            .eq('tournament_id', tournamentId)
-            .eq('user_id', loserId)
-        }
       }
 
-      setSuccess('Match recorded successfully!')
-      setPlayer1Id('')
-      setPlayer2Id('')
-      setPlayer1Score('')
-      setPlayer2Score('')
-      
-      setTimeout(() => setSuccess(''), 3000)
+      const { data: loserPart } = await supabase
+        .from('tournament_participants')
+        .select('losses, points')
+        .eq('tournament_id', tournamentId)
+        .eq('user_id', loserId)
+        .single()
+
+      if (loserPart) {
+        const loserSets = winnerId === selectedMatch.player1_id ? p2Sets : p1Sets
+        await supabase
+          .from('tournament_participants')
+          .update({ losses: loserPart.losses + 1, points: (loserPart.points || 0) + loserSets * 10 })
+          .eq('tournament_id', tournamentId)
+          .eq('user_id', loserId)
+      }
+
+      // Advance winner in knockout
+      const tournament = tournaments.find(t => t.id === tournamentId)
+      if (tournament?.tournament_type === 'knockout' && selectedMatch.round != null) {
+        await advanceKnockoutWinner(
+          tournamentId,
+          selectedMatch.round,
+          selectedMatch.match_order,
+          winnerId
+        )
+      }
+
+      setSuccess(`Match recorded! ${userMap[winnerId] || 'Winner'} wins.`)
+      setSelectedMatch(null)
+      setSets(EMPTY_SETS)
+      fetchPendingMatches(tournamentId)
     } catch (err) {
-      setError(`Error: ${err.message}`)
+      setError(err.message)
     }
+    setSubmitting(false)
   }
 
-  if (loading) {
-    return <div className="match-container"><p>Loading...</p></div>
-  }
+  const p1Name = selectedMatch ? (userMap[selectedMatch.player1_id] || 'Player 1') : ''
+  const p2Name = selectedMatch ? (userMap[selectedMatch.player2_id] || 'Player 2') : ''
+
+  if (loading) return <div className="match-container"><p>Loading...</p></div>
 
   return (
     <div className="match-container">
@@ -156,78 +222,100 @@ export default function MatchRecording({ user }) {
       {error && <div className="error-message">{error}</div>}
       {success && <div className="success-message">{success}</div>}
 
-      <form onSubmit={handleRecordMatch} className="match-form">
-        <div className="form-section">
-          <label>Tournament</label>
-          <select value={tournamentId} onChange={(e) => setTournamentId(e.target.value)} required>
-            <option value="">Select a tournament</option>
-            {tournaments.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.name}
-              </option>
-            ))}
-          </select>
-          {tournaments.length === 0 && <p className="hint">You haven't joined any tournaments yet</p>}
+      <div className="form-section">
+        <label>Tournament</label>
+        <select value={tournamentId} onChange={e => handleTournamentChange(e.target.value)}>
+          <option value="">Select a tournament</option>
+          {tournaments.map(t => (
+            <option key={t.id} value={t.id}>{t.name}</option>
+          ))}
+        </select>
+        {tournaments.length === 0 && (
+          <p className="hint">No active tournaments found. Create one and wait for all players to accept.</p>
+        )}
+      </div>
+
+      {tournamentId && pendingMatches.length === 0 && (
+        <p className="no-matches">No pending matches — all done or waiting for bracket to fill.</p>
+      )}
+
+      {pendingMatches.length > 0 && (
+        <div className="pending-matches-list">
+          <p className="form-section-label">Select a match to record</p>
+          {pendingMatches.map(m => {
+            const roundLabel = m.round > 1 ? ` · Round ${m.round}` : ''
+            return (
+              <div
+                key={m.id}
+                className={`pending-match-row ${selectedMatch?.id === m.id ? 'selected' : ''}`}
+                onClick={() => handleMatchSelect(m)}
+              >
+                <span className="pending-match-players">
+                  {userMap[m.player1_id] || '?'} <span className="vs">vs</span> {userMap[m.player2_id] || '?'}
+                </span>
+                <span className="pending-match-round">{roundLabel}</span>
+              </div>
+            )
+          })}
         </div>
+      )}
 
-        <div className="match-players">
-          <div className="form-section">
-            <label>Player 1</label>
-            <select value={player1Id} onChange={(e) => setPlayer1Id(e.target.value)} required>
-              <option value="">Select player</option>
-              {allUsers.map((u) => (
-                <option key={u.id} value={u.id}>
-                  {u.name}
-                </option>
-              ))}
-            </select>
+      {selectedMatch && (
+        <form onSubmit={handleSubmit} className="match-form" style={{ marginTop: 24 }}>
+          <div className="set-scoring-header">
+            <span className="set-player-col">{p1Name}</span>
+            <span className="set-label-col"></span>
+            <span className="set-player-col">{p2Name}</span>
           </div>
 
-          <div className="vs-divider">VS</div>
+          {[
+            { label: 'Set 1', k1: 's1p1', k2: 's1p2' },
+            { label: 'Set 2', k1: 's2p1', k2: 's2p2' },
+          ].map(({ label, k1, k2 }) => (
+            <div key={label} className="set-row">
+              <input
+                type="number" min="0" max="7"
+                className="set-input"
+                value={sets[k1]}
+                onChange={e => setVal(k1, e.target.value)}
+                placeholder="0"
+              />
+              <span className="set-label">{label}</span>
+              <input
+                type="number" min="0" max="7"
+                className="set-input"
+                value={sets[k2]}
+                onChange={e => setVal(k2, e.target.value)}
+                placeholder="0"
+              />
+            </div>
+          ))}
 
-          <div className="form-section">
-            <label>Player 2</label>
-            <select value={player2Id} onChange={(e) => setPlayer2Id(e.target.value)} required>
-              <option value="">Select player</option>
-              {allUsers.map((u) => (
-                <option key={u.id} value={u.id}>
-                  {u.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
+          {needsSet3() && (
+            <div className="set-row set-row-decisive">
+              <input
+                type="number" min="0" max="7"
+                className="set-input"
+                value={sets.s3p1}
+                onChange={e => setVal('s3p1', e.target.value)}
+                placeholder="0"
+              />
+              <span className="set-label">Set 3 <span className="set-label-decisive">(decisive)</span></span>
+              <input
+                type="number" min="0" max="7"
+                className="set-input"
+                value={sets.s3p2}
+                onChange={e => setVal('s3p2', e.target.value)}
+                placeholder="0"
+              />
+            </div>
+          )}
 
-        <div className="match-scores">
-          <div className="form-section">
-            <label>Player 1 Score</label>
-            <input
-              type="number"
-              min="0"
-              value={player1Score}
-              onChange={(e) => setPlayer1Score(e.target.value)}
-              placeholder="0"
-              required
-            />
-          </div>
-
-          <div className="form-section">
-            <label>Player 2 Score</label>
-            <input
-              type="number"
-              min="0"
-              value={player2Score}
-              onChange={(e) => setPlayer2Score(e.target.value)}
-              placeholder="0"
-              required
-            />
-          </div>
-        </div>
-
-        <button type="submit" className="record-btn">
-          Record Match
-        </button>
-      </form>
+          <button type="submit" className="record-btn" disabled={submitting} style={{ marginTop: 16 }}>
+            {submitting ? 'Saving...' : 'Record Match Result'}
+          </button>
+        </form>
+      )}
     </div>
   )
 }
