@@ -10,7 +10,6 @@ export default function HeadToHeadStats({ user }) {
   const [recentMatches, setRecentMatches] = useState([])
   const [loading, setLoading]       = useState(true)
   const [loadingH2h, setLoadingH2h] = useState(false)
-  const [userMap, setUserMap]       = useState({})
 
   useEffect(() => {
     supabase
@@ -19,12 +18,7 @@ export default function HeadToHeadStats({ user }) {
       .neq('id', user.id)
       .order('name')
       .then(({ data }) => {
-        if (data) {
-          setAllUsers(data)
-          const map = {}
-          data.forEach(u => { map[u.id] = u.name || u.email })
-          setUserMap(map)
-        }
+        if (data) setAllUsers(data)
         setLoading(false)
       })
   }, [user.id])
