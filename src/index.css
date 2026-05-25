@@ -1,13 +1,188 @@
+/* ─────────────────────────────────────────
+   DESIGN SYSTEM — Tennis App
+   Inspired by Strava × Linear × Apple
+   ───────────────────────────────────────── */
+
+:root {
+  /* Primary */
+  --c-primary:        #F97316;
+  --c-primary-hover:  #E65A0C;
+  --c-primary-active: #C4500A;
+  --c-primary-subtle: #FEF3ED;
+  --c-primary-faint:  #FFF9F6;
+  --c-primary-glow:   rgba(249, 115, 22, 0.18);
+
+  /* Accent */
+  --c-accent:       #FB9D6B;
+  --c-accent-hover: #F88C54;
+
+  /* Surface */
+  --c-bg:      #F5F0E8;
+  --c-surface: #FFFFFF;
+  --c-border:  #E1D0B8;
+  --c-border-light: #EDE6D9;
+
+  /* Text */
+  --c-text:        #1C1917;
+  --c-heading:     #4A3520;
+  --c-secondary:   #8B6346;
+  --c-muted:       #C2A882;
+  --c-placeholder: #C4A882;
+
+  /* Semantic */
+  --c-success-bg:   #F0FDF4;
+  --c-success-bd:   #BBF7D0;
+  --c-success-text: #15803D;
+  --c-success-bar:  #16A34A;
+  --c-error-bg:     #FEF2F2;
+  --c-error-bd:     #FECACA;
+  --c-error-text:   #B91C1C;
+  --c-error-bar:    #DC2626;
+
+  /* Shadows */
+  --shadow-xs:      0 1px 2px rgba(0,0,0,0.04);
+  --shadow-sm:      0 1px 4px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md:      0 4px 16px rgba(0,0,0,0.08);
+  --shadow-lg:      0 12px 40px rgba(0,0,0,0.12);
+  --shadow-primary: 0 4px 14px rgba(249, 115, 22, 0.28);
+
+  /* Radius */
+  --r-sm:   6px;
+  --r-md:   8px;
+  --r-lg:   12px;
+  --r-xl:   16px;
+  --r-2xl:  20px;
+  --r-full: 999px;
+
+  /* Spacing (8px grid) */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --sp-10: 40px;
+  --sp-12: 48px;
+
+  /* Typography */
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+
+  /* Transitions */
+  --t:      all 0.25s ease;
+  --t-fast: all 0.15s ease;
+  --t-slow: all 0.35s ease;
+}
+
+/* ── Reset ── */
+*, *::before, *::after { box-sizing: border-box; }
+
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family: var(--font);
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--c-text);
+  background: var(--c-bg);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
+h1, h2, h3, h4 {
+  font-family: var(--font);
+  color: var(--c-heading);
+  line-height: 1.3;
+  letter-spacing: -0.3px;
+}
+
+a { color: var(--c-primary); }
+
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+  font-family: 'SF Mono', 'Fira Code', Menlo, Monaco, monospace;
+}
+
+/* ── Spinner ── */
+@keyframes spin    { to { transform: rotate(360deg); } }
+@keyframes fadeUp  {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn  {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.spinner {
+  width: 28px;
+  height: 28px;
+  border: 2.5px solid var(--c-border);
+  border-top-color: var(--c-primary);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  flex-shrink: 0;
+}
+
+.loading-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 56px 24px;
+  color: var(--c-muted);
+  font-size: 13px;
+}
+
+/* ── Empty State ── */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 64px 24px;
+  gap: 8px;
+}
+.empty-icon  { font-size: 40px; opacity: 0.35; margin-bottom: 4px; }
+.empty-title { font-size: 17px; font-weight: 600; color: var(--c-heading); margin: 0; }
+.empty-desc  { font-size: 13px; color: var(--c-secondary); margin: 0; max-width: 300px; line-height: 1.6; }
+
+/* ── Shared message styles ── */
+.error-message {
+  background: var(--c-error-bg);
+  border: 1px solid var(--c-error-bd);
+  border-left: 3px solid var(--c-error-bar);
+  color: var(--c-error-text);
+  padding: 12px 16px;
+  border-radius: var(--r-md);
+  font-size: 13px;
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.success-message {
+  background: var(--c-success-bg);
+  border: 1px solid var(--c-success-bd);
+  border-left: 3px solid var(--c-success-bar);
+  color: var(--c-success-text);
+  padding: 12px 16px;
+  border-radius: var(--r-md);
+  font-size: 13px;
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+/* ── Page entry animation ── */
+.page-body { animation: fadeUp 0.28s ease both; }
+
+/* ── Utility ── */
+.hint {
+  font-size: 12px;
+  color: var(--c-secondary);
+  margin-top: 5px;
+  line-height: 1.5;
 }
