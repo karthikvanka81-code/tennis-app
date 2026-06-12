@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from './supabaseClient'
 import { advanceKnockoutWinner } from './MatchGeneration'
-import { updatePlayerELO, updateHeadToHeadStats, recordELOHistory } from './UpdateELOLogic'
 import './Match.css'
 
 const EMPTY_SETS = { s1p1: '', s1p2: '', s2p1: '', s2p2: '', s3p1: '', s3p2: '' }
@@ -181,31 +180,27 @@ export default function MatchRecording({ user }) {
         }).eq('tournament_id', tournamentId).eq('user_id', loserId),
       ])
 
-      // 3. ELO update
-      const eloResult = await updatePlayerELO(winnerId, loserId)
-
-      // 4. ELO history
+      // 3. ELO + H2H via server-side Postgres function (tamper-proof)
+      const winnerSetsWon = winnerId === selectedMatch.player1_id ? p1Sets : p2Sets
+      const loserSetsWon  = winnerId === selectedMatch.player1_id ? p2Sets : p1Sets
+      const { data: eloData, error: eloErr } = await supabase.rpc('update_elo_and_stats', {
+        p_match_id:    selectedMatch.id,
+        p_winner_id:   winnerId,
+        p_loser_id:    loserId,
+        p_winner_sets: winnerSetsWon,
+        p_loser_sets:  loserSetsWon,
+      })
+      if (eloErr) { setError(eloErr.message); setSubmitting(false); return }
+      const eloResult = eloData
+        ? { winnerNewRating: eloData.winner_new_elo, loserNewRating: eloData.loser_new_elo, winnerChange: eloData.elo_change, loserChange: -eloData.elo_change }
+        : null
       if (eloResult) {
-        await Promise.all([
-          recordELOHistory(winnerId, selectedMatch.id, eloResult.winnerNewRating, eloResult.winnerChange),
-          recordELOHistory(loserId,  selectedMatch.id, eloResult.loserNewRating,  eloResult.loserChange),
-        ])
-        // refresh userMap with new ratings
         setUserMap(prev => ({
           ...prev,
           [winnerId]: { ...prev[winnerId], elo_rating: eloResult.winnerNewRating },
           [loserId]:  { ...prev[loserId],  elo_rating: eloResult.loserNewRating  },
         }))
       }
-
-      // 5. Head-to-head stats
-      await updateHeadToHeadStats(
-        selectedMatch.player1_id,
-        selectedMatch.player2_id,
-        winnerId,
-        p1Sets,
-        p2Sets,
-      )
 
       // 6. Knockout bracket advancement
       const tournament = tournaments.find(t => t.id === tournamentId)
@@ -287,10 +282,10 @@ export default function MatchRecording({ user }) {
               >
                 <span className="pending-match-players">
                   {p1?.name || '?'}
-                  <span style={{ fontSize: 11, color: '#A0754F', marginLeft: 4 }}>({p1Elo})</span>
+                  <span style={{ fontSize: 11, color: 'var(--c-secondary)', marginLeft: 4 }}>({p1Elo})</span>
                   <span className="vs"> vs </span>
                   {p2?.name || '?'}
-                  <span style={{ fontSize: 11, color: '#A0754F', marginLeft: 4 }}>({p2Elo})</span>
+                  <span style={{ fontSize: 11, color: 'var(--c-secondary)', marginLeft: 4 }}>({p2Elo})</span>
                 </span>
                 <span className="pending-match-round">{roundLabel}</span>
               </div>
