@@ -13,8 +13,8 @@
   content: '';
   position: fixed;
   inset: 0;
-  background: rgba(22, 14, 6, 0.50);
-  backdrop-filter: blur(1px);
+  background: rgba(7, 13, 26, 0.78);
+  backdrop-filter: blur(2px);
   z-index: 0;
 }
 
@@ -150,8 +150,8 @@
   gap: 10px;
   width: 100%;
   padding: 12px 20px;
-  background: #ffffff;
-  color: #3c4043;
+  background: var(--c-surface);
+  color: var(--c-heading);
   border: 1px solid var(--c-border);
   border-radius: var(--r-md);
   font-size: 14px;
@@ -163,9 +163,9 @@
   margin-bottom: 4px;
 }
 .google-btn:hover:not(:disabled) {
-  background: #f8f9fa;
+  background: var(--c-border);
   border-color: #4285F4;
-  box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.12);
+  box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.18);
   transform: translateY(-1px);
 }
 .google-btn:active:not(:disabled) {

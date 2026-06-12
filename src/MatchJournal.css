@@ -237,8 +237,8 @@
   font-size: 22px;
   font-weight: 700;
 }
-.opp-wins    { color: #16a34a; }
-.opp-losses  { color: #dc2626; }
+.opp-wins    { color: #4AE3B5; }
+.opp-losses  { color: #F87171; }
 .opp-divider { color: var(--c-muted); font-size: 18px; }
 
 .opponent-stats-sub {
@@ -298,8 +298,8 @@
   box-shadow: var(--shadow-md);
   transform: translateY(-1px);
 }
-.journal-entry.entry-win  { border-left: 3px solid #16a34a; }
-.journal-entry.entry-loss { border-left: 3px solid #dc2626; }
+.journal-entry.entry-win  { border-left: 3px solid #00C896; }
+.journal-entry.entry-loss { border-left: 3px solid #EF4444; }
 
 .entry-summary {
   display: flex;
@@ -329,8 +329,8 @@
   font-weight: 800;
   flex-shrink: 0;
 }
-.badge-win  { background: #dcfce7; color: #15803d; }
-.badge-loss { background: #fee2e2; color: #b91c1c; }
+.badge-win  { background: rgba(0, 200, 150, 0.15); color: #4AE3B5; }
+.badge-loss { background: rgba(248, 113, 113, 0.15); color: #F87171; }
 
 .entry-main {
   display: flex;

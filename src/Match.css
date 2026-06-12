@@ -265,7 +265,7 @@
 .player { font-weight: 600; color: var(--c-heading); font-size: 14px; }
 .stat   { text-align: center; font-size: 13px; color: var(--c-secondary); }
 .stat.wins   { color: var(--c-accent); font-weight: 600; }
-.stat.losses { color: #ef4444; font-weight: 600; }
+.stat.losses { color: #F87171; font-weight: 600; }
 
 /* ── Pending Match Selector ── */
 .pending-matches-list {

@@ -223,11 +223,11 @@ export default function Dashboard() {
                 <div className="stat-label">Total Matches</div>
               </div>
               <div className="stat-card">
-                <div className="stat-value" style={{ color: '#FB9D6B' }}>{stats.wins}</div>
+                <div className="stat-value" style={{ color: '#4AE3B5' }}>{stats.wins}</div>
                 <div className="stat-label">Wins</div>
               </div>
               <div className="stat-card">
-                <div className="stat-value" style={{ color: '#ef4444' }}>{stats.losses}</div>
+                <div className="stat-value" style={{ color: '#F87171' }}>{stats.losses}</div>
                 <div className="stat-label">Losses</div>
               </div>
               <div className="stat-card">

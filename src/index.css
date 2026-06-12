@@ -1,50 +1,50 @@
 /* ─────────────────────────────────────────
    DESIGN SYSTEM — Tennis App
-   Inspired by Strava × Linear × Apple
+   Deep Forest + Gold — Dark luxury theme
    ───────────────────────────────────────── */
 
 :root {
-  /* Primary */
-  --c-primary:        #F97316;
-  --c-primary-hover:  #E65A0C;
-  --c-primary-active: #C4500A;
-  --c-primary-subtle: #FEF3ED;
-  --c-primary-faint:  #FFF9F6;
-  --c-primary-glow:   rgba(249, 115, 22, 0.18);
+  /* Primary — Gold */
+  --c-primary:        #FFD700;
+  --c-primary-hover:  #F5C800;
+  --c-primary-active: #DEB000;
+  --c-primary-subtle: rgba(255, 215, 0, 0.14);
+  --c-primary-faint:  rgba(255, 215, 0, 0.07);
+  --c-primary-glow:   rgba(255, 215, 0, 0.28);
 
-  /* Accent */
-  --c-accent:       #FB9D6B;
-  --c-accent-hover: #F88C54;
+  /* Accent — Emerald */
+  --c-accent:       #00C896;
+  --c-accent-hover: #00B085;
 
-  /* Surface */
-  --c-bg:      #F5F0E8;
-  --c-surface: #FFFFFF;
-  --c-border:  #E1D0B8;
-  --c-border-light: #EDE6D9;
+  /* Surface — Deep Navy */
+  --c-bg:           #070D1A;
+  --c-surface:      #0E1B2E;
+  --c-border:       #1E3352;
+  --c-border-light: #243D5E;
 
   /* Text */
-  --c-text:        #1C1917;
-  --c-heading:     #4A3520;
-  --c-secondary:   #8B6346;
-  --c-muted:       #C2A882;
-  --c-placeholder: #C4A882;
+  --c-text:        #CCD6F6;
+  --c-heading:     #E6F1FF;
+  --c-secondary:   #8892B0;
+  --c-muted:       #4A5A7A;
+  --c-placeholder: #3D4F6E;
 
   /* Semantic */
-  --c-success-bg:   #F0FDF4;
-  --c-success-bd:   #BBF7D0;
-  --c-success-text: #15803D;
-  --c-success-bar:  #16A34A;
-  --c-error-bg:     #FEF2F2;
-  --c-error-bd:     #FECACA;
-  --c-error-text:   #B91C1C;
-  --c-error-bar:    #DC2626;
+  --c-success-bg:   rgba(0, 200, 150, 0.12);
+  --c-success-bd:   rgba(0, 200, 150, 0.28);
+  --c-success-text: #4AE3B5;
+  --c-success-bar:  #00C896;
+  --c-error-bg:     rgba(248, 113, 113, 0.12);
+  --c-error-bd:     rgba(248, 113, 113, 0.28);
+  --c-error-text:   #F87171;
+  --c-error-bar:    #EF4444;
 
   /* Shadows */
-  --shadow-xs:      0 1px 2px rgba(0,0,0,0.04);
-  --shadow-sm:      0 1px 4px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
-  --shadow-md:      0 4px 16px rgba(0,0,0,0.08);
-  --shadow-lg:      0 12px 40px rgba(0,0,0,0.12);
-  --shadow-primary: 0 4px 14px rgba(249, 115, 22, 0.28);
+  --shadow-xs:      0 1px 3px rgba(0,0,0,0.4);
+  --shadow-sm:      0 2px 8px rgba(0,0,0,0.5);
+  --shadow-md:      0 4px 24px rgba(0,0,0,0.6);
+  --shadow-lg:      0 16px 56px rgba(0,0,0,0.7);
+  --shadow-primary: 0 4px 20px rgba(255, 215, 0, 0.35);
 
   /* Radius */
   --r-sm:   6px;
