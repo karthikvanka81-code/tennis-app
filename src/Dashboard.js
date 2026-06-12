@@ -13,6 +13,34 @@ import HeadToHeadStats from './HeadToHeadStats'
 import MatchJournal from './MatchJournal'
 import './Dashboard.css'
 
+const HomeIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+  </svg>
+)
+const RecordIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="9"/><path d="M5.5 5.5c2.5 2.5 2.5 5.5 0 8M18.5 5.5c-2.5 2.5-2.5 5.5 0 8"/>
+  </svg>
+)
+const JournalIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/>
+  </svg>
+)
+const CompeteIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="8 6 6 6 6 10"/><path d="M6 10c0 3.31 2.69 6 6 6s6-2.69 6-6V6h-2"/>
+    <path d="M6 6H2v4c0 2.21 1.79 4 4 4"/><path d="M18 6h4v4c0 2.21-1.79 4-4 4"/>
+    <line x1="12" y1="16" x2="12" y2="20"/><line x1="8" y1="20" x2="16" y2="20"/>
+  </svg>
+)
+const MeIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>
+  </svg>
+)
+
 export default function Dashboard() {
   const [user, setUser]           = useState(null)
   const [userData, setUserData]   = useState(null)
@@ -21,6 +49,7 @@ export default function Dashboard() {
   const [error, setError]         = useState('')
   const [currentPage, setCurrentPage] = useState('dashboard')
   const [inviteCount, setInviteCount] = useState(0)
+  const [mobileSheet, setMobileSheet] = useState(null)
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -107,12 +136,35 @@ export default function Dashboard() {
     { key: 'rules',             label: 'Rules' },
   ]
 
+  const competePages = ['create-tournament', 'tournaments', 'invitations', 'leaderboard', 'head-to-head']
+  const mePages      = ['profile', 'match-history', 'rules']
+
+  const sheetItems = {
+    compete: [
+      { key: 'create-tournament', label: 'Create Tournament', sub: 'Start a new tournament' },
+      { key: 'tournaments',       label: 'My Tournaments',    sub: 'View your tournaments' },
+      { key: 'invitations',       label: 'Invitations',       sub: 'Pending invites', badge: inviteCount },
+      { key: 'leaderboard',       label: 'Leaderboard',       sub: 'Rankings & ELO' },
+      { key: 'head-to-head',      label: 'Head-to-Head',      sub: 'Compare vs opponents' },
+    ],
+    me: [
+      { key: 'profile',       label: 'My Profile',    sub: 'ELO, stats & history' },
+      { key: 'match-history', label: 'Match History', sub: 'All recorded matches' },
+      { key: 'rules',         label: 'Rules & Info',  sub: 'Tournament rules & ELO guide' },
+    ],
+  }
+
+  const navigate = (key) => {
+    setCurrentPage(key)
+    setMobileSheet(null)
+  }
+
   return (
     <div className="dashboard-wrapper">
       <nav className="dashboard-nav">
         <div className="nav-content">
           <div className="nav-left">
-            <h1 className="logo">🎾 Tennis App</h1>
+            <h1 className="logo">🎾 Ace</h1>
             <div className="nav-links">
               {navItems.map(item => (
                 <button
@@ -203,6 +255,82 @@ export default function Dashboard() {
         {currentPage === 'profile'            && <PlayerProfile userId={user.id} currentUser={user} />}
         {currentPage === 'rules'              && <TournamentRules />}
       </div>
+
+      {/* ── Mobile Bottom Nav ── */}
+      <nav className="bottom-nav">
+        <button
+          className={`bottom-nav-item ${currentPage === 'dashboard' ? 'active' : ''}`}
+          onClick={() => navigate('dashboard')}
+        >
+          <HomeIcon />
+          <span>Home</span>
+        </button>
+
+        <button
+          className={`bottom-nav-item ${currentPage === 'record-match' ? 'active' : ''}`}
+          onClick={() => navigate('record-match')}
+        >
+          <RecordIcon />
+          <span>Record</span>
+        </button>
+
+        <button
+          className={`bottom-nav-item ${currentPage === 'journal' ? 'active' : ''}`}
+          onClick={() => navigate('journal')}
+        >
+          <JournalIcon />
+          <span>Journal</span>
+        </button>
+
+        <button
+          className={`bottom-nav-item ${competePages.includes(currentPage) ? 'active' : ''}`}
+          onClick={() => setMobileSheet(mobileSheet === 'compete' ? null : 'compete')}
+        >
+          <div className="bottom-nav-icon-wrap">
+            <CompeteIcon />
+            {inviteCount > 0 && <span className="bottom-nav-dot" />}
+          </div>
+          <span>Compete</span>
+        </button>
+
+        <button
+          className={`bottom-nav-item ${mePages.includes(currentPage) ? 'active' : ''}`}
+          onClick={() => setMobileSheet(mobileSheet === 'me' ? null : 'me')}
+        >
+          <MeIcon />
+          <span>Me</span>
+        </button>
+      </nav>
+
+      {/* ── Mobile Sheet ── */}
+      {mobileSheet && (
+        <>
+          <div className="sheet-backdrop" onClick={() => setMobileSheet(null)} />
+          <div className="bottom-sheet">
+            <div className="sheet-handle" />
+            <div className="sheet-title">
+              {mobileSheet === 'compete' ? 'Compete' : 'My Account'}
+            </div>
+            {sheetItems[mobileSheet].map(item => (
+              <button
+                key={item.key}
+                className={`sheet-item ${currentPage === item.key ? 'active' : ''}`}
+                onClick={() => navigate(item.key)}
+              >
+                <div className="sheet-item-text">
+                  <span className="sheet-item-label">{item.label}</span>
+                  <span className="sheet-item-sub">{item.sub}</span>
+                </div>
+                {item.badge > 0 && <span className="sheet-badge">{item.badge}</span>}
+                {currentPage === item.key && <span className="sheet-check">✓</span>}
+              </button>
+            ))}
+            {mobileSheet === 'me' && (
+              <button className="sheet-logout-btn" onClick={handleLogout}>Log out</button>
+            )}
+          </div>
+        </>
+      )}
     </div>
   )
 }
