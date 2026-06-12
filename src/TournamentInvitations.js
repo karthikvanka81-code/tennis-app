@@ -49,6 +49,16 @@ export default function TournamentInvitations({ user, onCountChange }) {
 
       const activated = await checkAndActivateTournament(invitation.tournament_id)
 
+      const { data: playerData } = await supabase.from('users').select('name').eq('id', user.id).single()
+      await supabase.from('activity_feed').insert([{
+        user_id: user.id,
+        type: 'tournament_joined',
+        data: {
+          player_name: playerData?.name || 'Someone',
+          tournament_name: invitation.tournaments?.name || 'a tournament',
+        },
+      }])
+
       setInvitations(prev => prev.filter(i => i.id !== invitation.id))
       onCountChange?.(invitations.length - 1)
 

@@ -11,6 +11,7 @@ import TournamentRules from './TournamentRules'
 import PlayerProfile from './PlayerProfile'
 import HeadToHeadStats from './HeadToHeadStats'
 import MatchJournal from './MatchJournal'
+import ActivityFeed from './ActivityFeed'
 import './Dashboard.css'
 
 const HomeIcon = () => (
@@ -217,7 +218,9 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <div className="stats-grid">
+            <ActivityFeed />
+
+            <div className="stats-grid" style={{ marginTop: 20 }}>
               <div className="stat-card">
                 <div className="stat-value">{stats.totalMatches}</div>
                 <div className="stat-label">Total Matches</div>

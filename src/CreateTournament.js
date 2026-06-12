@@ -123,6 +123,17 @@ export default function CreateTournament({ user }) {
       }
 
       setCreatedTournament({ ...tournament, inviteCount: selectedPlayers.length })
+      const { data: creatorData } = await supabase.from('users').select('name').eq('id', user.id).single()
+      await supabase.from('activity_feed').insert([{
+        user_id: user.id,
+        type: 'tournament_created',
+        data: {
+          tournament_name: name.trim(),
+          tournament_type: type,
+          creator_name: creatorData?.name || 'Someone',
+        },
+      }])
+
       setSuccess(`"${name}" created! Invitations sent to ${selectedPlayers.length} player(s).`)
       setName('')
       setSelectedPlayers([])
