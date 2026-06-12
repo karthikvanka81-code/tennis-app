@@ -10,6 +10,7 @@ import Leaderboard from './Leaderboard'
 import TournamentRules from './TournamentRules'
 import PlayerProfile from './PlayerProfile'
 import HeadToHeadStats from './HeadToHeadStats'
+import MatchJournal from './MatchJournal'
 import './Dashboard.css'
 
 export default function Dashboard() {
@@ -101,6 +102,7 @@ export default function Dashboard() {
     { key: 'match-history',     label: 'History' },
     { key: 'leaderboard',       label: 'Leaderboard' },
     { key: 'head-to-head',      label: 'Head-to-Head' },
+    { key: 'journal',           label: 'Match Journal' },
     { key: 'profile',           label: 'My Profile' },
     { key: 'rules',             label: 'Rules' },
   ]
@@ -197,6 +199,7 @@ export default function Dashboard() {
         {currentPage === 'match-history'      && <MatchHistory user={user} />}
         {currentPage === 'leaderboard'        && <Leaderboard user={user} />}
         {currentPage === 'head-to-head'       && <HeadToHeadStats user={user} />}
+        {currentPage === 'journal'            && <MatchJournal user={user} />}
         {currentPage === 'profile'            && <PlayerProfile userId={user.id} currentUser={user} />}
         {currentPage === 'rules'              && <TournamentRules />}
       </div>
