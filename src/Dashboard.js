@@ -28,8 +28,28 @@ export default function Dashboard() {
         if (authError || !currentUser) { setError('Not logged in'); setLoading(false); return }
         setUser(currentUser)
 
-        const { data: profile, error: profileError } = await supabase
+        let { data: profile, error: profileError } = await supabase
           .from('users').select('*').eq('id', currentUser.id).single()
+
+        // Google OAuth users have no users row — create one from their Google metadata
+        if (profileError && profileError.code === 'PGRST116') {
+          const meta = currentUser.user_metadata || {}
+          const { data: newProfile, error: insertError } = await supabase
+            .from('users')
+            .insert([{
+              id: currentUser.id,
+              email: currentUser.email,
+              name: meta.full_name || meta.name || currentUser.email.split('@')[0],
+              role: 'player',
+              elo_rating: 1200,
+            }])
+            .select()
+            .single()
+          if (insertError) { setError(`Error creating profile: ${insertError.message}`); setLoading(false); return }
+          profile = newProfile
+          profileError = null
+        }
+
         if (profileError) { setError(`Error fetching profile: ${profileError.message}`); setLoading(false); return }
         setUserData(profile)
 
