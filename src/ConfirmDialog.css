@@ -1,0 +1,110 @@
+.confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  animation: fadeIn 0.15s ease both;
+}
+
+.confirm-dialog {
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-2xl);
+  padding: 32px 28px 24px;
+  max-width: 400px;
+  width: 100%;
+  box-shadow: var(--shadow-lg);
+  animation: scaleIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  text-align: center;
+}
+
+.confirm-icon {
+  font-size: 32px;
+  margin-bottom: 14px;
+  line-height: 1;
+}
+
+.confirm-title {
+  margin: 0 0 10px;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--c-heading);
+  letter-spacing: -0.3px;
+}
+
+.confirm-message {
+  margin: 0 0 6px;
+  font-size: 14px;
+  color: var(--c-text);
+  line-height: 1.6;
+}
+
+.confirm-detail {
+  margin: 0 0 24px;
+  font-size: 13px;
+  color: var(--c-secondary);
+  line-height: 1.5;
+  background: var(--c-bg);
+  border-radius: var(--r-md);
+  padding: 10px 14px;
+  border: 1px solid var(--c-border);
+}
+
+.confirm-message + .confirm-actions,
+.confirm-message:last-of-type { margin-bottom: 24px; }
+
+.confirm-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.confirm-cancel-btn {
+  flex: 1;
+  padding: 12px;
+  background: transparent;
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-md);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--c-secondary);
+  cursor: pointer;
+  font-family: var(--font);
+  transition: var(--t-fast);
+}
+.confirm-cancel-btn:hover {
+  background: var(--c-bg);
+  color: var(--c-heading);
+}
+
+.confirm-ok-btn {
+  flex: 1;
+  padding: 12px;
+  background: var(--c-primary);
+  border: none;
+  border-radius: var(--r-md);
+  font-size: 14px;
+  font-weight: 600;
+  color: #000;
+  cursor: pointer;
+  font-family: var(--font);
+  transition: var(--t-fast);
+  box-shadow: var(--shadow-primary);
+}
+.confirm-ok-btn:hover {
+  background: var(--c-primary-hover);
+  transform: translateY(-1px);
+}
+.confirm-ok-btn.danger {
+  background: var(--c-error-bar);
+  color: white;
+  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);
+}
+.confirm-ok-btn.danger:hover {
+  background: #dc2626;
+}

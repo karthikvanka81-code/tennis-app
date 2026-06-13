@@ -1,13 +1,16 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from './supabaseClient'
 import { checkAndActivateTournament } from './MatchGeneration'
+import ConfirmDialog from './ConfirmDialog'
+import { friendlyError } from './errorMessages'
 import './Tournament.css'
 
 export default function TournamentInvitations({ user, onCountChange }) {
   const [invitations, setInvitations] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [actioningId, setActioningId] = useState(null)
+  const [actioningId, setActioningId]   = useState(null)
+  const [confirmDecline, setConfirmDecline] = useState(null)
 
   const fetchInvitations = useCallback(async () => {
     try {
@@ -63,32 +66,28 @@ export default function TournamentInvitations({ user, onCountChange }) {
       onCountChange?.(invitations.length - 1)
 
       if (activated) {
-        alert(`All players confirmed! The tournament "${invitation.tournaments.name}" is now active and matches have been generated.`)
+        setError('')
+        // Use a friendly inline notice instead of alert()
+        setError(`🎾 Tournament "${invitation.tournaments.name}" is now active — matches have been generated!`)
       }
     } catch (err) {
-      setError(err.message)
+      setError(friendlyError(err))
     }
     setActioningId(null)
   }
 
-  const handleDecline = async (invitation) => {
+  const handleDecline = async () => {
+    const invitation = confirmDecline
+    setConfirmDecline(null)
     setActioningId(invitation.id)
     try {
-      await supabase
-        .from('tournament_participants')
-        .delete()
-        .eq('tournament_id', invitation.tournament_id)
-        .eq('user_id', user.id)
-
-      await supabase
-        .from('tournament_invitations')
-        .update({ status: 'declined' })
-        .eq('id', invitation.id)
-
+      await supabase.from('tournament_participants').delete()
+        .eq('tournament_id', invitation.tournament_id).eq('user_id', user.id)
+      await supabase.from('tournament_invitations').update({ status: 'declined' }).eq('id', invitation.id)
       setInvitations(prev => prev.filter(i => i.id !== invitation.id))
       onCountChange?.(invitations.length - 1)
     } catch (err) {
-      setError(err.message)
+      setError(friendlyError(err))
     }
     setActioningId(null)
   }
@@ -102,6 +101,16 @@ export default function TournamentInvitations({ user, onCountChange }) {
 
   return (
     <div className="tournament-container">
+      <ConfirmDialog
+        isOpen={!!confirmDecline}
+        title="Decline invitation?"
+        message={confirmDecline ? `You're about to decline the invitation to "${confirmDecline.tournaments?.name}".` : ''}
+        detail="You won't be able to join this tournament unless the organiser invites you again."
+        confirmLabel="Yes, Decline"
+        danger
+        onConfirm={handleDecline}
+        onCancel={() => setConfirmDecline(null)}
+      />
       <div className="tournament-header">
         <h2>Invitations</h2>
       </div>
@@ -137,7 +146,7 @@ export default function TournamentInvitations({ user, onCountChange }) {
                 </button>
                 <button
                   className="decline-btn"
-                  onClick={() => handleDecline(inv)}
+                  onClick={() => setConfirmDecline(inv)}
                   disabled={actioningId === inv.id}
                 >
                   Decline

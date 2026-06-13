@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from './supabaseClient'
+import ConfirmDialog from './ConfirmDialog'
+import { friendlyError } from './errorMessages'
 import './MatchJournal.css'
 
 const EMPTY_FORM = { opponentName: '', result: 'Win', score: '', notes: '', matchDate: new Date().toISOString().split('T')[0] }
@@ -12,6 +14,7 @@ export default function MatchJournal({ user }) {
   const [form, setForm]                 = useState(EMPTY_FORM)
   const [editingId, setEditingId]       = useState(null)
   const [expandedId, setExpandedId]     = useState(null)
+  const [confirmDelete, setConfirmDelete] = useState(null)
   const [searchQuery, setSearchQuery]   = useState('')
   const [selectedOpponent, setSelectedOpponent] = useState(null)
   const [showSuggestions, setShowSuggestions]   = useState(false)
@@ -58,7 +61,7 @@ export default function MatchJournal({ user }) {
     }
 
     if (error) {
-      flash(`Error: ${error.message}`, 'error')
+      flash(friendlyError(error), 'error')
     } else {
       flash(editingId ? 'Match updated!' : 'Match recorded!')
       resetForm()
@@ -79,11 +82,12 @@ export default function MatchJournal({ user }) {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Delete this match entry?')) return
+  const handleDelete = async () => {
+    const id = confirmDelete.id
+    setConfirmDelete(null)
     const { error } = await supabase.from('match_journal').delete().eq('id', id)
-    if (error) { flash(`Error: ${error.message}`, 'error'); return }
-    flash('Match deleted.')
+    if (error) { flash(friendlyError(error), 'error'); return }
+    flash('Match entry deleted.')
     setEntries(prev => prev.filter(e => e.id !== id))
     if (expandedId === id) setExpandedId(null)
   }
@@ -121,6 +125,16 @@ export default function MatchJournal({ user }) {
 
   return (
     <div className="journal-container">
+      <ConfirmDialog
+        isOpen={!!confirmDelete}
+        title="Delete match entry?"
+        message={confirmDelete ? `vs ${confirmDelete.opponent_name} · ${confirmDelete.result} · ${confirmDelete.score}` : ''}
+        detail="This cannot be undone."
+        confirmLabel="Delete"
+        danger
+        onConfirm={handleDelete}
+        onCancel={() => setConfirmDelete(null)}
+      />
       <div className="journal-header">
         <h2>{editingId ? 'Edit Match' : 'Match Journal'}</h2>
         {editingId && (
@@ -306,7 +320,7 @@ export default function MatchJournal({ user }) {
                 )}
                 <div className="entry-actions">
                   <button className="edit-btn" onClick={() => handleEdit(entry)}>Edit</button>
-                  <button className="delete-btn" onClick={() => handleDelete(entry.id)}>Delete</button>
+                  <button className="delete-btn" onClick={() => setConfirmDelete(entry)}>Delete</button>
                 </div>
               </div>
             )}

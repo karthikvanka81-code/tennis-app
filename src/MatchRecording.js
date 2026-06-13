@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { supabase } from './supabaseClient'
 import { advanceKnockoutWinner } from './MatchGeneration'
+import ConfirmDialog from './ConfirmDialog'
+import { friendlyError } from './errorMessages'
 import './Match.css'
 
 const EMPTY_SETS = { s1p1: '', s1p2: '', s2p1: '', s2p2: '', s3p1: '', s3p2: '' }
@@ -32,6 +34,7 @@ export default function MatchRecording({ user }) {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError]     = useState('')
   const [success, setSuccess] = useState('')
+  const [confirmSubmit, setConfirmSubmit] = useState(null)
 
   useEffect(() => {
     fetchInitialData()
@@ -119,20 +122,26 @@ export default function MatchRecording({ user }) {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
-    if (!selectedMatch) { setError('Select a match to record'); return }
+    if (!selectedMatch) { setError('Please select a match first.'); return }
     if (!sets.s1p1 || !sets.s1p2 || !sets.s2p1 || !sets.s2p2) {
-      setError('Enter scores for Set 1 and Set 2')
+      setError('Please enter scores for Set 1 and Set 2.')
       return
     }
 
     const result = calcWinner(sets, selectedMatch.player1_id, selectedMatch.player2_id)
-    if (!result) { setError('Cannot determine winner — check set scores'); return }
+    if (!result) { setError('Could not determine a winner — please check your set scores.'); return }
 
     const { winnerId, p1Sets, p2Sets } = result
     const loserId = winnerId === selectedMatch.player1_id
       ? selectedMatch.player2_id
       : selectedMatch.player1_id
 
+    setConfirmSubmit({ winnerId, loserId, p1Sets, p2Sets })
+  }
+
+  const submitResult = async () => {
+    const { winnerId, loserId, p1Sets, p2Sets } = confirmSubmit
+    setConfirmSubmit(null)
     setSubmitting(true)
     try {
       // 1. Update match record
@@ -156,7 +165,7 @@ export default function MatchRecording({ user }) {
         .update(updatePayload)
         .eq('id', selectedMatch.id)
 
-      if (updateErr) { setError(updateErr.message); setSubmitting(false); return }
+      if (updateErr) { setError(friendlyError(updateErr)); setSubmitting(false); return }
 
       // 2. Tournament points (10 per set won)
       const [{ data: wp }, { data: lp }] = await Promise.all([
@@ -190,7 +199,7 @@ export default function MatchRecording({ user }) {
         p_winner_sets: winnerSetsWon,
         p_loser_sets:  loserSetsWon,
       })
-      if (eloErr) { setError(eloErr.message); setSubmitting(false); return }
+      if (eloErr) { setError(friendlyError(eloErr)); setSubmitting(false); return }
       const eloResult = eloData
         ? { winnerNewRating: eloData.winner_new_elo, loserNewRating: eloData.loser_new_elo, winnerChange: eloData.elo_change, loserChange: -eloData.elo_change }
         : null
@@ -229,7 +238,7 @@ export default function MatchRecording({ user }) {
       setSets(EMPTY_SETS)
       fetchPendingMatches(tournamentId)
     } catch (err) {
-      setError(err.message)
+      setError(friendlyError(err))
     }
     setSubmitting(false)
   }
@@ -241,6 +250,15 @@ export default function MatchRecording({ user }) {
 
   return (
     <div className="match-container">
+      <ConfirmDialog
+        isOpen={!!confirmSubmit}
+        title="Confirm match result"
+        message={confirmSubmit ? `${userMap[confirmSubmit.winnerId]?.name || 'Winner'} beat ${userMap[confirmSubmit.loserId]?.name || 'Loser'} — sets ${confirmSubmit.p1Sets}–${confirmSubmit.p2Sets}` : ''}
+        detail="ELO ratings will be updated and this result cannot be changed without admin help."
+        confirmLabel="Record Result"
+        onConfirm={submitResult}
+        onCancel={() => setConfirmSubmit(null)}
+      />
       <div className="match-header">
         <h2>Record Match</h2>
       </div>
