@@ -182,6 +182,21 @@
   flex-shrink: 0;
 }
 
+/* ── Forgot password ── */
+.forgot-btn {
+  background: none;
+  border: none;
+  color: var(--c-secondary);
+  cursor: pointer;
+  font-size: 12px;
+  font-family: var(--font);
+  text-align: right;
+  width: 100%;
+  padding: 4px 0 0;
+  transition: color 0.15s ease;
+}
+.forgot-btn:hover { color: var(--c-primary); }
+
 /* ── Toggle ── */
 .toggle-btn {
   background: none;

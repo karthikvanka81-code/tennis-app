@@ -8,8 +8,9 @@ export default function Auth() {
   const [email, setEmail]     = useState('')
   const [password, setPassword] = useState('')
   const [name, setName]       = useState('')
-  const [loading, setLoading] = useState(false)
-  const [message, setMessage] = useState({ text: '', type: '' })
+  const [loading, setLoading]   = useState(false)
+  const [message, setMessage]   = useState({ text: '', type: '' })
+  const [showReset, setShowReset] = useState(false)
 
   const msg = (text, type = 'info') => setMessage({ text, type })
 
@@ -43,6 +44,19 @@ export default function Auth() {
     if (error) { msg(friendlyError(error), 'error'); setLoading(false) }
   }
 
+  const handleResetPassword = async (e) => {
+    e.preventDefault()
+    if (!email) { msg('Please enter your email address first.', 'error'); return }
+    setLoading(true)
+    setMessage({ text: '', type: '' })
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}`,
+    })
+    if (error) { msg(friendlyError(error), 'error') }
+    else { msg('Password reset email sent! Check your inbox.', 'success'); setShowReset(false) }
+    setLoading(false)
+  }
+
   const handleLogin = async (e) => {
     e.preventDefault()
     setLoading(true)
@@ -61,7 +75,26 @@ export default function Auth() {
       <div className="auth-card">
         <h1>{isLogin ? 'Welcome back' : 'Create account'}</h1>
 
-        <form onSubmit={isLogin ? handleLogin : handleSignUp} className="auth-form">
+        {showReset && (
+          <form onSubmit={handleResetPassword} className="auth-form" style={{ marginBottom: 16 }}>
+            <p style={{ margin: '0 0 12px', fontSize: 13, color: 'var(--c-secondary)', lineHeight: 1.5 }}>
+              Enter your email and we'll send you a link to reset your password.
+            </p>
+            <div className="form-group">
+              <label htmlFor="reset-email">Email</label>
+              <input id="reset-email" type="email" placeholder="your@email.com"
+                value={email} onChange={e => setEmail(e.target.value)} required />
+            </div>
+            <button type="submit" disabled={loading} className="submit-btn">
+              {loading ? 'Sending…' : 'Send Reset Link'}
+            </button>
+            <button type="button" className="toggle-btn" onClick={() => setShowReset(false)}>
+              Back to login
+            </button>
+          </form>
+        )}
+
+        {!showReset && <form onSubmit={isLogin ? handleLogin : handleSignUp} className="auth-form">
           {!isLogin && (
             <div className="form-group">
               <label htmlFor="name">Full Name</label>
@@ -83,7 +116,14 @@ export default function Auth() {
           <button type="submit" disabled={loading} className="submit-btn">
             {loading ? 'Please wait…' : isLogin ? 'Log In' : 'Create Account'}
           </button>
-        </form>
+          {isLogin && (
+            <button type="button" className="forgot-btn" onClick={() => { setShowReset(true); setMessage({ text: '', type: '' }) }}>
+              Forgot password?
+            </button>
+          )}
+        </form>}
+
+        {!showReset && <>
 
         <div className="auth-divider"><span>OR</span></div>
 
@@ -97,15 +137,16 @@ export default function Auth() {
           Continue with Google
         </button>
 
+        <button onClick={() => { setIsLogin(!isLogin); setMessage({ text: '', type: '' }) }} className="toggle-btn">
+          {isLogin ? "Don't have an account? Sign Up" : 'Already have an account? Log In'}
+        </button>
+        </>}
+
         {message.text && (
           <div className={message.type === 'error' ? 'error-message' : message.type === 'success' ? 'success-message' : 'message'}>
             {message.text}
           </div>
         )}
-
-        <button onClick={() => { setIsLogin(!isLogin); setMessage({ text: '', type: '' }) }} className="toggle-btn">
-          {isLogin ? "Don't have an account? Sign Up" : 'Already have an account? Log In'}
-        </button>
       </div>
     </div>
   )
