@@ -373,7 +373,7 @@
   background: none;
   border: 1px dashed var(--c-border-light);
   border-radius: var(--r-md);
-  color: var(--c-text);
+  color: #fff;
   font-size: 13px;
   font-family: var(--font);
   cursor: pointer;
@@ -385,7 +385,7 @@
 .remove-set-btn {
   background: none;
   border: none;
-  color: var(--c-text);
+  color: #fff;
   font-size: 10px;
   cursor: pointer;
   padding: 0 0 0 4px;

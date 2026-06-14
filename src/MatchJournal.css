@@ -170,7 +170,7 @@
   background: none;
   border: none;
   font-size: 13px;
-  color: var(--c-secondary);
+  color: #fff;
   cursor: pointer;
   padding: 2px 4px;
   border-radius: var(--r-sm);
@@ -441,7 +441,7 @@
   border-radius: var(--r-md);
   font-size: 13px;
   font-weight: 500;
-  color: var(--c-text);
+  color: #fff;
   cursor: pointer;
   font-family: var(--font);
   transition: var(--t-fast);
