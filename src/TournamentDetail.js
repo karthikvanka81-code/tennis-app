@@ -67,17 +67,24 @@ export default function TournamentDetail({ tournament, onBack, currentUser }) {
     setActivating(true)
     setMessage('')
 
-    // Mark all participants confirmed (admin override)
-    await supabase.from('tournament_participants')
+    // Admin privilege: force-confirm everyone still pending
+    const { error: confirmErr } = await supabase
+      .from('tournament_participants')
       .update({ confirmed: true })
       .eq('tournament_id', tournament.id)
+      .eq('confirmed', false)
 
-    // Re-run activation check
+    if (confirmErr) {
+      setMessage(`Could not confirm pending players: ${confirmErr.message}. Make sure the RLS policy allows admin updates.`)
+      setActivating(false)
+      return
+    }
+
     const { checkAndActivateTournament } = await import('./MatchGeneration')
     const { success, error: activateErr } = await checkAndActivateTournament(tournament.id)
 
     if (success) {
-      setMessage('Tournament activated! Matches have been generated.')
+      setMessage('Tournament activated! All pending players were force-confirmed and matches have been generated.')
       fetchAll()
     } else {
       setMessage(`Could not activate: ${activateErr}`)
