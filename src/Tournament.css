@@ -1117,7 +1117,7 @@
 /* ── Close Tournament button ── */
 .close-tournament-btn {
   padding: 9px 18px;
-  background: none;
+  background: rgba(248,113,113,0.15);
   border: 1px solid #F87171;
   border-radius: var(--r-md);
   color: #F87171;
@@ -1251,16 +1251,17 @@
 .schedule-proposed { font-size: 12px; color: var(--c-primary); display: flex; align-items: center; gap: 8px; }
 .schedule-propose-btn {
   padding: 5px 12px;
-  background: none;
-  border: 1px solid var(--c-border);
+  background: var(--c-primary-subtle);
+  border: 1px solid var(--c-primary);
   border-radius: var(--r-md);
-  color: var(--c-secondary);
+  color: var(--c-primary);
   font-size: 12px;
+  font-weight: 600;
   font-family: var(--font);
   cursor: pointer;
   transition: var(--t-fast);
 }
-.schedule-propose-btn:hover { border-color: var(--c-primary); color: var(--c-primary); }
+.schedule-propose-btn:hover { background: rgba(255,215,0,0.2); }
 .schedule-confirm-btn {
   padding: 4px 10px;
   background: var(--c-primary);
