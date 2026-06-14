@@ -92,6 +92,23 @@ export default function TournamentDetail({ tournament, onBack, currentUser }) {
     setActivating(false)
   }
 
+  const handleAddMatchSession = async () => {
+    const playerIds = participants.filter(p => p.confirmed).map(p => p.user_id)
+    if (playerIds.length < 2) return
+    const allMatches = matches
+    const maxOrder = allMatches.length > 0 ? Math.max(...allMatches.map(m => m.match_order ?? 0)) : -1
+    await supabase.from('matches').insert([{
+      tournament_id: tournament.id,
+      player1_id: playerIds[0],
+      player2_id: playerIds[1],
+      match_status: 'pending',
+      round: 1,
+      match_order: maxOrder + 1,
+    }])
+    setMessage('New match added — go to Record Match to enter the score.')
+    fetchAll()
+  }
+
   const typeLabel = { 'one-to-one': 'One-to-One', 'round-robin': 'Round Robin', 'knockout': 'Knockout' }
   const statusColor = { setup: 'var(--c-secondary)', active: '#00C896', completed: 'var(--c-primary)' }
 
@@ -100,6 +117,8 @@ export default function TournamentDetail({ tournament, onBack, currentUser }) {
   const isAdmin         = tournament.admin_id === currentUser?.id
   const participantIds  = participants.map(p => p.user_id)
   const eligibleToAdd   = allUsers.filter(u => !participantIds.includes(u.id))
+  const isOneToOne      = tournament.tournament_type === 'one-to-one'
+  const pendingMatches  = matches.filter(m => m.match_status === 'pending')
 
   const byRound = matches.reduce((acc, m) => {
     if (!acc[m.round]) acc[m.round] = []
@@ -121,11 +140,23 @@ export default function TournamentDetail({ tournament, onBack, currentUser }) {
             </span>
           </div>
         </div>
-        {isAdmin && tournament.status === 'setup' && (
-          <button className="activate-btn" onClick={handleForceActivate} disabled={activating}>
-            {activating ? 'Activating…' : '⚡ Force Activate'}
-          </button>
-        )}
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          {isAdmin && tournament.status === 'setup' && (
+            <button className="activate-btn" onClick={handleForceActivate} disabled={activating}>
+              {activating ? 'Activating…' : '⚡ Force Activate'}
+            </button>
+          )}
+          {isOneToOne && tournament.status === 'active' && pendingMatches.length === 0 && (
+            <button className="activate-btn" onClick={handleAddMatchSession}>
+              + Add Match Session
+            </button>
+          )}
+          {isOneToOne && tournament.status === 'active' && pendingMatches.length > 0 && (
+            <span className="detail-hint" style={{ alignSelf: 'center', margin: 0 }}>
+              {pendingMatches.length} match{pendingMatches.length > 1 ? 'es' : ''} ready to record
+            </span>
+          )}
+        </div>
       </div>
 
       {message && <div className="success-message">{message}</div>}

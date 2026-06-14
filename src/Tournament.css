@@ -1104,4 +1104,4 @@
 
 .match-score-col    { display: flex; flex-direction: column; align-items: center; gap: 2px; }
 .match-set-count    { font-size: 13px; font-weight: 700; color: var(--c-heading); }
-.match-game-scores  { font-size: 11px; color: var(--c-secondary); white-space: nowrap; }
+.match-game-scores  { font-size: 11px; color: var(--c-secondary); white-space: nowrap; font-style: italic; }
