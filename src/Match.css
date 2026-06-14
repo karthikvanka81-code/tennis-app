@@ -365,3 +365,31 @@
   }
   .match-form { padding: 20px; }
 }
+
+.add-set-btn {
+  width: 100%;
+  padding: 8px;
+  background: none;
+  border: 1px dashed var(--c-border);
+  border-radius: var(--r-md);
+  color: var(--c-secondary);
+  font-size: 13px;
+  font-family: var(--font);
+  cursor: pointer;
+  transition: var(--t-fast);
+  margin-top: 4px;
+}
+.add-set-btn:hover { border-color: var(--c-primary); color: var(--c-primary); }
+
+.remove-set-btn {
+  background: none;
+  border: none;
+  color: var(--c-secondary);
+  font-size: 10px;
+  cursor: pointer;
+  padding: 0 0 0 4px;
+  line-height: 1;
+  vertical-align: middle;
+  transition: color 0.15s;
+}
+.remove-set-btn:hover { color: #F87171; }

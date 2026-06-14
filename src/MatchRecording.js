@@ -5,21 +5,19 @@ import ConfirmDialog from './ConfirmDialog'
 import { friendlyError } from './errorMessages'
 import './Match.css'
 
-const EMPTY_SETS = { s1p1: '', s1p2: '', s2p1: '', s2p2: '', s3p1: '', s3p2: '' }
+const EMPTY_SET = { p1: '', p2: '' }
+const DEFAULT_SETS = () => [{ p1: '', p2: '' }]
 
+// sets is an array of { p1, p2 }
 function calcWinner(sets, p1Id, p2Id) {
   let p1Sets = 0, p2Sets = 0
-  if (sets.s1p1 !== '' && sets.s1p2 !== '') {
-    if (parseInt(sets.s1p1) > parseInt(sets.s1p2)) p1Sets++; else p2Sets++
+  for (const s of sets) {
+    if (s.p1 === '' || s.p2 === '') continue
+    if (parseInt(s.p1) > parseInt(s.p2)) p1Sets++; else p2Sets++
   }
-  if (sets.s2p1 !== '' && sets.s2p2 !== '') {
-    if (parseInt(sets.s2p1) > parseInt(sets.s2p2)) p1Sets++; else p2Sets++
-  }
-  if (p1Sets < 2 && p2Sets < 2 && sets.s3p1 !== '' && sets.s3p2 !== '') {
-    if (parseInt(sets.s3p1) > parseInt(sets.s3p2)) p1Sets++; else p2Sets++
-  }
-  if (p1Sets >= 2) return { winnerId: p1Id, p1Sets, p2Sets }
-  if (p2Sets >= 2) return { winnerId: p2Id, p1Sets, p2Sets }
+  if (p1Sets === 0 && p2Sets === 0) return null
+  if (p1Sets > p2Sets) return { winnerId: p1Id, p1Sets, p2Sets }
+  if (p2Sets > p1Sets) return { winnerId: p2Id, p1Sets, p2Sets }
   return null
 }
 
@@ -29,7 +27,7 @@ export default function MatchRecording({ user }) {
   const [tournamentId, setTournamentId] = useState('')
   const [pendingMatches, setPendingMatches] = useState([])
   const [selectedMatch, setSelectedMatch]   = useState(null)
-  const [sets, setSets]         = useState(EMPTY_SETS)
+  const [sets, setSets]         = useState(DEFAULT_SETS())
   const [loading, setLoading]   = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError]     = useState('')
@@ -77,7 +75,7 @@ export default function MatchRecording({ user }) {
     setLoading(true)
     setPendingMatches([])
     setSelectedMatch(null)
-    setSets(EMPTY_SETS)
+    setSets(DEFAULT_SETS())
 
     if (!tid) { setLoading(false); return }
 
@@ -104,32 +102,29 @@ export default function MatchRecording({ user }) {
 
   const handleMatchSelect = (match) => {
     setSelectedMatch(match)
-    setSets(EMPTY_SETS)
+    setSets(DEFAULT_SETS())
     setError('')
     setSuccess('')
   }
 
-  const setVal = (key, val) => setSets(prev => ({ ...prev, [key]: val }))
+  const setVal = (index, field, val) =>
+    setSets(prev => prev.map((s, i) => i === index ? { ...s, [field]: val } : s))
 
-  const needsSet3 = () => {
-    const { s1p1, s1p2, s2p1, s2p2 } = sets
-    if (s1p1 === '' || s2p1 === '') return false
-    const p1 = (parseInt(s1p1) > parseInt(s1p2) ? 1 : 0) + (parseInt(s2p1) > parseInt(s2p2) ? 1 : 0)
-    const p2 = (parseInt(s1p2) > parseInt(s1p1) ? 1 : 0) + (parseInt(s2p2) > parseInt(s2p1) ? 1 : 0)
-    return p1 === 1 && p2 === 1
-  }
+  const addSet = () => setSets(prev => [...prev, { ...EMPTY_SET }])
+  const removeSet = (index) => setSets(prev => prev.filter((_, i) => i !== index))
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
     if (!selectedMatch) { setError('Please select a match first.'); return }
-    if (!sets.s1p1 || !sets.s1p2 || !sets.s2p1 || !sets.s2p2) {
-      setError('Please enter scores for Set 1 and Set 2.')
+    const filledSets = sets.filter(s => s.p1 !== '' && s.p2 !== '')
+    if (filledSets.length === 0) {
+      setError('Please enter at least one set score.')
       return
     }
 
     const result = calcWinner(sets, selectedMatch.player1_id, selectedMatch.player2_id)
-    if (!result) { setError('Could not determine a winner — please check your set scores.'); return }
+    if (!result) { setError('Could not determine a winner — scores are tied. Add a deciding set.'); return }
 
     const { winnerId, p1Sets, p2Sets } = result
     const loserId = winnerId === selectedMatch.player1_id
@@ -145,20 +140,16 @@ export default function MatchRecording({ user }) {
     setSubmitting(true)
     try {
       // 1. Update match record
+      const filledSets = sets.filter(s => s.p1 !== '' && s.p2 !== '')
       const updatePayload = {
-        set1_player1: parseInt(sets.s1p1),
-        set1_player2: parseInt(sets.s1p2),
-        set2_player1: parseInt(sets.s2p1),
-        set2_player2: parseInt(sets.s2p2),
         winner_id:    winnerId,
         match_status: 'completed',
         player1_score: p1Sets,
         player2_score: p2Sets,
       }
-      if (sets.s3p1 !== '' && sets.s3p2 !== '') {
-        updatePayload.set3_player1 = parseInt(sets.s3p1)
-        updatePayload.set3_player2 = parseInt(sets.s3p2)
-      }
+      if (filledSets[0]) { updatePayload.set1_player1 = parseInt(filledSets[0].p1); updatePayload.set1_player2 = parseInt(filledSets[0].p2) }
+      if (filledSets[1]) { updatePayload.set2_player1 = parseInt(filledSets[1].p1); updatePayload.set2_player2 = parseInt(filledSets[1].p2) }
+      if (filledSets[2]) { updatePayload.set3_player1 = parseInt(filledSets[2].p1); updatePayload.set3_player2 = parseInt(filledSets[2].p2) }
 
       const { error: updateErr } = await supabase
         .from('matches')
@@ -320,49 +311,35 @@ export default function MatchRecording({ user }) {
             <span className="set-player-col">{p2Name}</span>
           </div>
 
-          {[
-            { label: 'Set 1', k1: 's1p1', k2: 's1p2' },
-            { label: 'Set 2', k1: 's2p1', k2: 's2p2' },
-          ].map(({ label, k1, k2 }) => (
-            <div key={label} className="set-row">
+          {sets.map((s, i) => (
+            <div key={i} className="set-row">
               <input
                 type="number" min="0" max="7"
                 className="set-input"
-                value={sets[k1]}
-                onChange={e => setVal(k1, e.target.value)}
+                value={s.p1}
+                onChange={e => setVal(i, 'p1', e.target.value)}
                 placeholder="0"
               />
-              <span className="set-label">{label}</span>
+              <span className="set-label">
+                Set {i + 1}
+                {sets.length > 1 && (
+                  <button type="button" className="remove-set-btn" onClick={() => removeSet(i)}>✕</button>
+                )}
+              </span>
               <input
                 type="number" min="0" max="7"
                 className="set-input"
-                value={sets[k2]}
-                onChange={e => setVal(k2, e.target.value)}
+                value={s.p2}
+                onChange={e => setVal(i, 'p2', e.target.value)}
                 placeholder="0"
               />
             </div>
           ))}
 
-          {needsSet3() && (
-            <div className="set-row set-row-decisive">
-              <input
-                type="number" min="0" max="7"
-                className="set-input"
-                value={sets.s3p1}
-                onChange={e => setVal('s3p1', e.target.value)}
-                placeholder="0"
-              />
-              <span className="set-label">
-                Set 3 <span className="set-label-decisive">(decisive)</span>
-              </span>
-              <input
-                type="number" min="0" max="7"
-                className="set-input"
-                value={sets.s3p2}
-                onChange={e => setVal('s3p2', e.target.value)}
-                placeholder="0"
-              />
-            </div>
+          {sets.length < 5 && (
+            <button type="button" className="add-set-btn" onClick={addSet}>
+              + Add Set
+            </button>
           )}
 
           <button
