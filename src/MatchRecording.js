@@ -139,6 +139,16 @@ export default function MatchRecording({ user }) {
     setConfirmSubmit(null)
     setSubmitting(true)
     try {
+      // Guard: check if match is already completed to prevent double ELO
+      const { data: currentMatch } = await supabase
+        .from('matches').select('match_status').eq('id', selectedMatch.id).single()
+      if (currentMatch?.match_status === 'completed') {
+        setError('This match has already been recorded.')
+        setSubmitting(false)
+        fetchPendingMatches(tournamentId)
+        return
+      }
+
       // 1. Update match record
       const filledSets = sets.filter(s => s.p1 !== '' && s.p2 !== '')
       const updatePayload = {
@@ -226,10 +236,10 @@ export default function MatchRecording({ user }) {
 
       setSuccess(`${winnerName} wins!${eloMsg}`)
       setSelectedMatch(null)
-      setSets(EMPTY_SETS)
+      setSets(DEFAULT_SETS())
       fetchPendingMatches(tournamentId)
     } catch (err) {
-      setError(friendlyError(err))
+      setError(`Error: ${err.message}`)
     }
     setSubmitting(false)
   }
