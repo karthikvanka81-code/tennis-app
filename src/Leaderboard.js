@@ -3,7 +3,7 @@ import { supabase } from './supabaseClient'
 import { getELOBadge } from './UpdateELOLogic'
 import './Match.css'
 
-export default function Leaderboard({ user }) {
+export default function Leaderboard({ user, onViewPlayer }) {
   const [view, setView]           = useState('elo')      // 'elo' | 'tournament'
   const [globalPlayers, setGlobalPlayers] = useState([])
   const [tournaments, setTournaments]     = useState([])
@@ -118,7 +118,10 @@ export default function Leaderboard({ user }) {
                 >
                   <div className="rank">#{i + 1}</div>
                   <div className="player">
-                    {p.name || '—'}
+                    <span
+                      className={onViewPlayer && !isMe ? 'player-link' : ''}
+                      onClick={onViewPlayer && !isMe ? () => onViewPlayer(p.id) : undefined}
+                    >{p.name || '—'}</span>
                     {isMe && <span style={{ marginLeft: 6, fontSize: 11, color: 'var(--c-primary)', fontWeight: 700 }}>you</span>}
                   </div>
                   <div className="stat" style={{ textAlign: 'left' }}>

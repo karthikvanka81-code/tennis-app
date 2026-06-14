@@ -13,6 +13,7 @@ import HeadToHeadStats from './HeadToHeadStats'
 import MatchJournal from './MatchJournal'
 import ActivityFeed from './ActivityFeed'
 import NotificationBell from './NotificationBell'
+import AdminDashboard from './AdminDashboard'
 import './Dashboard.css'
 
 const HomeIcon = () => (
@@ -49,9 +50,12 @@ export default function Dashboard() {
   const [stats, setStats]         = useState({ totalMatches: 0, wins: 0, losses: 0, winPercentage: 0 })
   const [loading, setLoading]     = useState(true)
   const [error, setError]         = useState('')
-  const [currentPage, setCurrentPage] = useState('dashboard')
-  const [inviteCount, setInviteCount] = useState(0)
-  const [mobileSheet, setMobileSheet] = useState(null)
+  const [currentPage, setCurrentPage]   = useState('dashboard')
+  const [inviteCount, setInviteCount]   = useState(0)
+  const [mobileSheet, setMobileSheet]   = useState(null)
+  const [profileUserId, setProfileUserId] = useState(null)
+
+  const viewPlayer = (uid) => { setProfileUserId(uid); setCurrentPage('player-profile') }
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -124,6 +128,8 @@ export default function Dashboard() {
   const elo   = userData?.elo_rating || 1200
   const badge = getELOBadge(elo)
 
+  const isAdmin = userData?.role === 'admin'
+
   const navItems = [
     { key: 'dashboard',         label: 'Dashboard' },
     { key: 'create-tournament', label: 'Create Tournament' },
@@ -136,6 +142,7 @@ export default function Dashboard() {
     { key: 'journal',           label: 'Match Journal' },
     { key: 'profile',           label: 'My Profile' },
     { key: 'rules',             label: 'Rules' },
+    ...(isAdmin ? [{ key: 'admin', label: '⚙ Admin' }] : []),
   ]
 
   const competePages = ['create-tournament', 'tournaments', 'invitations', 'leaderboard', 'head-to-head']
@@ -248,17 +255,19 @@ export default function Dashboard() {
         )}
 
         {currentPage === 'create-tournament'  && <CreateTournament user={user} />}
-        {currentPage === 'tournaments'        && <TournamentList user={user} />}
+        {currentPage === 'tournaments'        && <TournamentList user={user} onViewPlayer={viewPlayer} />}
         {currentPage === 'invitations'        && (
           <TournamentInvitations user={user} onCountChange={count => setInviteCount(count)} />
         )}
         {currentPage === 'record-match'       && <MatchRecording user={user} />}
-        {currentPage === 'match-history'      && <MatchHistory user={user} />}
-        {currentPage === 'leaderboard'        && <Leaderboard user={user} />}
-        {currentPage === 'head-to-head'       && <HeadToHeadStats user={user} />}
+        {currentPage === 'match-history'      && <MatchHistory user={user} onViewPlayer={viewPlayer} />}
+        {currentPage === 'leaderboard'        && <Leaderboard user={user} onViewPlayer={viewPlayer} />}
+        {currentPage === 'head-to-head'       && <HeadToHeadStats user={user} onViewPlayer={viewPlayer} />}
         {currentPage === 'journal'            && <MatchJournal user={user} />}
-        {currentPage === 'profile'            && <PlayerProfile userId={user.id} currentUser={user} />}
+        {currentPage === 'profile'            && <PlayerProfile userId={user.id} currentUser={user} onViewPlayer={viewPlayer} />}
+        {currentPage === 'player-profile'     && <PlayerProfile userId={profileUserId} currentUser={user} onBack={() => setCurrentPage('leaderboard')} onViewPlayer={viewPlayer} />}
         {currentPage === 'rules'              && <TournamentRules />}
+        {currentPage === 'admin'              && isAdmin && <AdminDashboard currentUser={user} onViewPlayer={viewPlayer} />}
       </div>
 
       {/* ── Mobile Bottom Nav ── */}

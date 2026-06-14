@@ -186,3 +186,9 @@ code {
   margin-top: 5px;
   line-height: 1.5;
 }
+
+/* ── Global: dark text on all gold/primary buttons for readability ── */
+[style*="background: var(--c-primary)"],
+[class*="btn"]:not(.google-btn):not(.toggle-btn):not(.forgot-btn):not(.back-btn):not(.remove-set-btn):not(.confirm-all-btn):not(.lb-toggle-btn):not(.decline-btn):not(.cancel-btn) {
+  color: #070D1A;
+}

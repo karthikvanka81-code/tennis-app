@@ -201,6 +201,15 @@ export default function MatchRecording({ user }) {
         p_loser_sets:  loserSetsWon,
       })
       if (eloErr) { setError(friendlyError(eloErr)); setSubmitting(false); return }
+
+      // Record ELO history for both players
+      if (eloData) {
+        await supabase.from('elo_history').insert([
+          { user_id: winnerId, match_id: selectedMatch.id, rating: eloData.winner_new_elo, change: eloData.elo_change },
+          { user_id: loserId,  match_id: selectedMatch.id, rating: eloData.loser_new_elo,  change: -eloData.elo_change },
+        ])
+      }
+
       const eloResult = eloData
         ? { winnerNewRating: eloData.winner_new_elo, loserNewRating: eloData.loser_new_elo, winnerChange: eloData.elo_change, loserChange: -eloData.elo_change }
         : null
