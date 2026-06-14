@@ -50,7 +50,7 @@ export default function TournamentInvitations({ user, onCountChange }) {
         .update({ status: 'accepted' })
         .eq('id', invitation.id)
 
-      const activated = await checkAndActivateTournament(invitation.tournament_id)
+      const { success: activated } = await checkAndActivateTournament(invitation.tournament_id)
 
       const { data: playerData } = await supabase.from('users').select('name').eq('id', user.id).single()
       await supabase.from('activity_feed').insert([{

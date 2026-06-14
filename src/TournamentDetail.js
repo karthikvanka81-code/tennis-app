@@ -74,13 +74,13 @@ export default function TournamentDetail({ tournament, onBack, currentUser }) {
 
     // Re-run activation check
     const { checkAndActivateTournament } = await import('./MatchGeneration')
-    const activated = await checkAndActivateTournament(tournament.id)
+    const { success, error: activateErr } = await checkAndActivateTournament(tournament.id)
 
-    if (activated) {
+    if (success) {
       setMessage('Tournament activated! Matches have been generated.')
       fetchAll()
     } else {
-      setMessage('Could not activate — check that enough players have joined.')
+      setMessage(`Could not activate: ${activateErr}`)
     }
     setActivating(false)
   }
