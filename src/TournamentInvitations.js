@@ -66,9 +66,7 @@ export default function TournamentInvitations({ user, onCountChange }) {
       onCountChange?.(invitations.length - 1)
 
       if (activated) {
-        setError('')
-        // Use a friendly inline notice instead of alert()
-        setError(`🎾 Tournament "${invitation.tournaments.name}" is now active — matches have been generated!`)
+        setError(`✅ Tournament "${invitation.tournaments?.name}" is now active — matches have been generated! Go to Tournaments to see your schedule.`)
       }
     } catch (err) {
       setError(friendlyError(err))

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from './supabaseClient'
 import TournamentBracket from './TournamentBracket'
+import TournamentDetail from './TournamentDetail'
 import './Tournament.css'
 
 export default function TournamentList({ user }) {
@@ -9,6 +10,7 @@ export default function TournamentList({ user }) {
   const [error, setError] = useState('')
   const [joinedTournaments, setJoinedTournaments] = useState([])
   const [bracketTournament, setBracketTournament] = useState(null)
+  const [detailTournament, setDetailTournament] = useState(null)
 
   useEffect(() => {
     fetchTournaments()
@@ -67,6 +69,16 @@ export default function TournamentList({ user }) {
 
   if (loading) return <div className="tournament-container"><p>Loading tournaments...</p></div>
 
+  if (detailTournament) {
+    return (
+      <TournamentDetail
+        tournament={detailTournament}
+        currentUser={user}
+        onBack={() => setDetailTournament(null)}
+      />
+    )
+  }
+
   return (
     <div className="tournament-container">
       <div className="tournament-header">
@@ -79,39 +91,47 @@ export default function TournamentList({ user }) {
         {tournaments.length === 0 ? (
           <p className="no-tournaments">No tournaments yet. Use "Create Tournament" to start one!</p>
         ) : (
-          tournaments.map(tournament => (
-            <div key={tournament.id} className="tournament-card">
-              <div className="tournament-card-top">
-                <h3>{tournament.name}</h3>
-                <span className="status">{statusLabel(tournament.status)}</span>
-              </div>
-              {tournament.tournament_type && (
-                <span className="tournament-type-chip">{typeLabel(tournament.tournament_type)}</span>
-              )}
-              <p className="created">Created: {new Date(tournament.created_at).toLocaleDateString()}</p>
-              {tournament.max_players && (
-                <p className="created">{tournament.max_players} players</p>
-              )}
+          tournaments.map(tournament => {
+            const isJoined = joinedTournaments.includes(tournament.id)
+            return (
+              <div
+                key={tournament.id}
+                className="tournament-card tournament-card-clickable"
+                onClick={() => setDetailTournament(tournament)}
+              >
+                <div className="tournament-card-top">
+                  <h3>{tournament.name}</h3>
+                  <span className={`status status-${tournament.status}`}>{statusLabel(tournament.status)}</span>
+                </div>
+                {tournament.tournament_type && (
+                  <span className="tournament-type-chip">{typeLabel(tournament.tournament_type)}</span>
+                )}
+                <p className="created">Created: {new Date(tournament.created_at).toLocaleDateString()}</p>
+                {tournament.max_players && (
+                  <p className="created">{tournament.max_players} players</p>
+                )}
 
-              <div className="tournament-card-actions">
-                {tournament.tournament_type === 'knockout' && tournament.status === 'active' && (
-                  <button
-                    className="bracket-btn"
-                    onClick={() => setBracketTournament(tournament)}
-                  >
-                    View Bracket
-                  </button>
-                )}
-                {joinedTournaments.includes(tournament.id) ? (
-                  <button className="joined-btn" disabled>✓ Joined</button>
-                ) : (
-                  <button className="join-btn" onClick={() => handleJoinTournament(tournament.id)}>
-                    Join
-                  </button>
-                )}
+                <div className="tournament-card-actions" onClick={e => e.stopPropagation()}>
+                  {tournament.tournament_type === 'knockout' && tournament.status === 'active' && (
+                    <button
+                      className="bracket-btn"
+                      onClick={() => setBracketTournament(tournament)}
+                    >
+                      View Bracket
+                    </button>
+                  )}
+                  {isJoined ? (
+                    <button className="joined-btn" disabled>✓ Joined</button>
+                  ) : tournament.status === 'setup' ? (
+                    <button className="join-btn" onClick={() => handleJoinTournament(tournament.id)}>
+                      Join
+                    </button>
+                  ) : null}
+                  <button className="view-detail-btn">View →</button>
+                </div>
               </div>
-            </div>
-          ))
+            )
+          })
         )}
       </div>
 
