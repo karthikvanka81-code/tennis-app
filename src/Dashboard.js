@@ -12,6 +12,7 @@ import PlayerProfile from './PlayerProfile'
 import HeadToHeadStats from './HeadToHeadStats'
 import MatchJournal from './MatchJournal'
 import ActivityFeed from './ActivityFeed'
+import NotificationBell from './NotificationBell'
 import './Dashboard.css'
 
 const HomeIcon = () => (
@@ -208,6 +209,7 @@ export default function Dashboard() {
                     {inviteCount} pending invitation{inviteCount !== 1 ? 's' : ''}
                   </button>
                 )}
+                <NotificationBell currentUser={user} />
                 <button
                   className="invite-alert-btn"
                   style={{ background: badge.bg, color: badge.color, border: `1px solid ${badge.color}` }}

@@ -208,3 +208,34 @@
 }
 .comment-submit:hover:not(:disabled) { background: var(--c-primary-hover); }
 .comment-submit:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ── @mention autocomplete ── */
+.comment-input-wrap { position: relative; flex: 1; }
+.comment-input-wrap .comment-input { width: 100%; box-sizing: border-box; }
+
+.mention-suggestions {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-lg);
+  z-index: 100;
+  overflow: hidden;
+}
+.mention-suggestion-item {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  background: none;
+  border: none;
+  text-align: left;
+  font-size: 13px;
+  color: var(--c-text);
+  font-family: var(--font);
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.mention-suggestion-item:hover { background: var(--c-primary-subtle); color: var(--c-primary); }

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { supabase } from './supabaseClient'
 import './ActivityFeed.css'
 
@@ -46,13 +46,24 @@ function formatText(item) {
 
 const DEFAULT_VISIBLE = 3
 
+function parseMentions(text, userMap) {
+  const names = Object.values(userMap).map(u => u.name)
+  const mentioned = []
+  names.forEach(name => {
+    if (text.toLowerCase().includes(`@${name.toLowerCase()}`)) mentioned.push(name)
+  })
+  return mentioned
+}
+
 function FeedItem({ item, currentUser, userMap }) {
-  const [liked, setLiked]             = useState(false)
-  const [likeCount, setLikeCount]     = useState(0)
+  const [liked, setLiked]               = useState(false)
+  const [likeCount, setLikeCount]       = useState(0)
   const [showComments, setShowComments] = useState(false)
-  const [comments, setComments]       = useState([])
-  const [commentText, setCommentText] = useState('')
-  const [submitting, setSubmitting]   = useState(false)
+  const [comments, setComments]         = useState([])
+  const [commentText, setCommentText]   = useState('')
+  const [submitting, setSubmitting]     = useState(false)
+  const [suggestions, setSuggestions] = useState([])
+  const inputRef                      = useRef(null)
 
   useEffect(() => {
     const fetchReactions = async () => {
@@ -98,16 +109,57 @@ function FeedItem({ item, currentUser, userMap }) {
     }
   }
 
+  const handleCommentInput = (e) => {
+    const val = e.target.value
+    setCommentText(val)
+    // detect @mention being typed
+    const match = val.match(/@(\w[\w ]*)$/)
+    if (match) {
+      const query = match[1].toLowerCase()
+      const allUsers = Object.values(userMap).filter(u => u.id !== currentUser?.id)
+      setSuggestions(allUsers.filter(u => u.name.toLowerCase().startsWith(query)))
+    } else {
+      setSuggestions([])
+    }
+  }
+
+  const handlePickSuggestion = (name) => {
+    setCommentText(prev => prev.replace(/@[\w ]*/g, `@${name} `))
+    setSuggestions([])
+    inputRef.current?.focus()
+  }
+
   const handleComment = async (e) => {
     e.preventDefault()
     if (!commentText.trim() || !currentUser) return
     setSubmitting(true)
+    const text = commentText.trim()
+
     await supabase.from('activity_comments').insert([{
       activity_id: item.id,
       user_id: currentUser.id,
-      text: commentText.trim(),
+      text,
     }])
+
+    // Fire notifications for each @mention
+    const mentioned = parseMentions(text, userMap)
+    const senderName = userMap[currentUser.id]?.name || 'Someone'
+    for (const name of mentioned) {
+      const target = Object.values(userMap).find(u => u.name.toLowerCase() === name.toLowerCase())
+      if (target && target.id !== currentUser.id) {
+        await supabase.from('notifications').insert([{
+          user_id: target.id,
+          from_user_id: currentUser.id,
+          from_name: senderName,
+          type: 'mention',
+          activity_id: item.id,
+          comment_text: text.length > 80 ? text.slice(0, 80) + '…' : text,
+        }])
+      }
+    }
+
     setCommentText('')
+    setSuggestions([])
     fetchComments()
     setSubmitting(false)
   }
@@ -153,13 +205,30 @@ function FeedItem({ item, currentUser, userMap }) {
               </div>
             ))}
             <form className="comment-form" onSubmit={handleComment}>
-              <input
-                className="comment-input"
-                placeholder="Add a comment…"
-                value={commentText}
-                onChange={e => setCommentText(e.target.value)}
-                maxLength={200}
-              />
+              <div className="comment-input-wrap">
+                <input
+                  ref={inputRef}
+                  className="comment-input"
+                  placeholder="Add a comment… type @ to mention"
+                  value={commentText}
+                  onChange={handleCommentInput}
+                  maxLength={200}
+                />
+                {suggestions.length > 0 && (
+                  <div className="mention-suggestions">
+                    {suggestions.map(u => (
+                      <button
+                        key={u.id}
+                        type="button"
+                        className="mention-suggestion-item"
+                        onClick={() => handlePickSuggestion(u.name)}
+                      >
+                        @{u.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
               <button type="submit" className="comment-submit" disabled={submitting || !commentText.trim()}>
                 Post
               </button>
