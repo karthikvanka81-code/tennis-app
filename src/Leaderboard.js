@@ -113,13 +113,13 @@ export default function Leaderboard({ user }) {
                   className="leaderboard-row"
                   style={{
                     gridTemplateColumns: '50px 1fr 110px 80px',
-                    background: isMe ? '#FFF3EE' : undefined,
+                    background: isMe ? 'rgba(255, 215, 0, 0.10)' : undefined,
                   }}
                 >
                   <div className="rank">#{i + 1}</div>
                   <div className="player">
                     {p.name || '—'}
-                    {isMe && <span style={{ marginLeft: 6, fontSize: 11, color: '#F97316', fontWeight: 700 }}>you</span>}
+                    {isMe && <span style={{ marginLeft: 6, fontSize: 11, color: 'var(--c-primary)', fontWeight: 700 }}>you</span>}
                   </div>
                   <div className="stat" style={{ textAlign: 'left' }}>
                     <span className="elo-inline" style={{ color: badge.color, fontWeight: 700 }}>
@@ -197,13 +197,13 @@ export default function Leaderboard({ user }) {
                       className="leaderboard-row"
                       style={{
                         gridTemplateColumns: '50px 1fr 70px 70px 70px 100px',
-                        background: isMe ? '#FFF3EE' : undefined,
+                        background: isMe ? 'rgba(255, 215, 0, 0.10)' : undefined,
                       }}
                     >
                       <div className="rank">#{i + 1}</div>
                       <div className="player">
                         {u?.name || 'Unknown'}
-                        {isMe && <span style={{ marginLeft: 6, fontSize: 11, color: '#F97316', fontWeight: 700 }}>you</span>}
+                        {isMe && <span style={{ marginLeft: 6, fontSize: 11, color: 'var(--c-primary)', fontWeight: 700 }}>you</span>}
                       </div>
                       <div className="stat wins">{s.wins}</div>
                       <div className="stat losses">{s.losses}</div>
