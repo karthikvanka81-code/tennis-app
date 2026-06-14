@@ -115,3 +115,96 @@
   margin-top: 4px;
 }
 .feed-toggle-btn:hover { color: var(--c-primary); }
+
+/* ── Feed actions (like / comment) ── */
+.feed-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+.feed-like-btn,
+.feed-comment-btn {
+  background: none;
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-full);
+  padding: 3px 10px;
+  font-size: 12px;
+  color: var(--c-secondary);
+  cursor: pointer;
+  font-family: var(--font);
+  transition: var(--t-fast);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.feed-like-btn:hover  { border-color: var(--c-primary); color: var(--c-primary); }
+.feed-like-btn.liked  { border-color: var(--c-primary); color: var(--c-primary); background: var(--c-primary-subtle); }
+.feed-comment-btn:hover { border-color: #00C896; color: #00C896; }
+
+/* ── Comments ── */
+.feed-comments {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.feed-comment {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 12px;
+  padding: 5px 8px;
+  background: var(--c-bg);
+  border-radius: var(--r-md);
+}
+.comment-author {
+  color: var(--c-heading);
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.comment-text {
+  color: var(--c-text);
+  flex: 1;
+}
+.comment-delete {
+  background: none;
+  border: none;
+  color: var(--c-secondary);
+  cursor: pointer;
+  font-size: 10px;
+  padding: 0;
+  flex-shrink: 0;
+  transition: color 0.15s;
+}
+.comment-delete:hover { color: #F87171; }
+
+.comment-form {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+}
+.comment-input {
+  flex: 1;
+  padding: 6px 10px;
+  background: var(--c-bg);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-md);
+  color: var(--c-text);
+  font-size: 12px;
+  font-family: var(--font);
+}
+.comment-input:focus { outline: none; border-color: var(--c-primary); }
+.comment-submit {
+  padding: 6px 12px;
+  background: var(--c-primary);
+  color: #070D1A;
+  border: none;
+  border-radius: var(--r-md);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: var(--font);
+  transition: var(--t-fast);
+}
+.comment-submit:hover:not(:disabled) { background: var(--c-primary-hover); }
+.comment-submit:disabled { opacity: 0.4; cursor: not-allowed; }

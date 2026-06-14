@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { supabase } from './supabaseClient'
 import './ActivityFeed.css'
 
@@ -46,22 +46,150 @@ function formatText(item) {
 
 const DEFAULT_VISIBLE = 3
 
-export default function ActivityFeed() {
+function FeedItem({ item, currentUser, userMap }) {
+  const [liked, setLiked]             = useState(false)
+  const [likeCount, setLikeCount]     = useState(0)
+  const [showComments, setShowComments] = useState(false)
+  const [comments, setComments]       = useState([])
+  const [commentText, setCommentText] = useState('')
+  const [submitting, setSubmitting]   = useState(false)
+
+  useEffect(() => {
+    const fetchReactions = async () => {
+      const { data } = await supabase
+        .from('activity_reactions')
+        .select('user_id')
+        .eq('activity_id', item.id)
+      if (data) {
+        setLikeCount(data.length)
+        setLiked(data.some(r => r.user_id === currentUser?.id))
+      }
+    }
+    fetchReactions()
+  }, [item.id, currentUser?.id])
+
+  const fetchComments = useCallback(async () => {
+    const { data } = await supabase
+      .from('activity_comments')
+      .select('*')
+      .eq('activity_id', item.id)
+      .order('created_at', { ascending: true })
+    setComments(data || [])
+  }, [item.id])
+
+  useEffect(() => {
+    if (showComments) fetchComments()
+  }, [showComments, fetchComments])
+
+  const handleLike = async () => {
+    if (!currentUser) return
+    if (liked) {
+      await supabase.from('activity_reactions')
+        .delete()
+        .eq('activity_id', item.id)
+        .eq('user_id', currentUser.id)
+      setLiked(false)
+      setLikeCount(c => c - 1)
+    } else {
+      await supabase.from('activity_reactions')
+        .insert([{ activity_id: item.id, user_id: currentUser.id }])
+      setLiked(true)
+      setLikeCount(c => c + 1)
+    }
+  }
+
+  const handleComment = async (e) => {
+    e.preventDefault()
+    if (!commentText.trim() || !currentUser) return
+    setSubmitting(true)
+    await supabase.from('activity_comments').insert([{
+      activity_id: item.id,
+      user_id: currentUser.id,
+      text: commentText.trim(),
+    }])
+    setCommentText('')
+    fetchComments()
+    setSubmitting(false)
+  }
+
+  const handleDeleteComment = async (commentId) => {
+    await supabase.from('activity_comments').delete().eq('id', commentId)
+    fetchComments()
+  }
+
+  const meta = TYPE_META[item.type] || { icon: '📌' }
+
+  return (
+    <div className="feed-item">
+      <span className="feed-icon">{meta.icon}</span>
+      <div className="feed-body">
+        <p className="feed-text">{formatText(item)}</p>
+        <span className="feed-time">{timeAgo(item.created_at)}</span>
+
+        <div className="feed-actions">
+          <button
+            className={`feed-like-btn ${liked ? 'liked' : ''}`}
+            onClick={handleLike}
+          >
+            👍 {likeCount > 0 ? likeCount : ''}
+          </button>
+          <button
+            className="feed-comment-btn"
+            onClick={() => setShowComments(v => !v)}
+          >
+            💬 {comments.length > 0 ? comments.length : ''} {showComments ? 'Hide' : 'Comment'}
+          </button>
+        </div>
+
+        {showComments && (
+          <div className="feed-comments">
+            {comments.map(c => (
+              <div key={c.id} className="feed-comment">
+                <span className="comment-author">{userMap[c.user_id]?.name || 'Player'}</span>
+                <span className="comment-text">{c.text}</span>
+                {(c.user_id === currentUser?.id) && (
+                  <button className="comment-delete" onClick={() => handleDeleteComment(c.id)}>✕</button>
+                )}
+              </div>
+            ))}
+            <form className="comment-form" onSubmit={handleComment}>
+              <input
+                className="comment-input"
+                placeholder="Add a comment…"
+                value={commentText}
+                onChange={e => setCommentText(e.target.value)}
+                maxLength={200}
+              />
+              <button type="submit" className="comment-submit" disabled={submitting || !commentText.trim()}>
+                Post
+              </button>
+            </form>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+export default function ActivityFeed({ currentUser }) {
   const [activities, setActivities] = useState([])
+  const [userMap, setUserMap]       = useState({})
   const [loading, setLoading]       = useState(true)
   const [expanded, setExpanded]     = useState(false)
 
   useEffect(() => {
-    const fetch = async () => {
-      const { data } = await supabase
-        .from('activity_feed')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(30)
-      setActivities(data || [])
+    const fetchData = async () => {
+      const [{ data: acts }, { data: users }] = await Promise.all([
+        supabase.from('activity_feed').select('*').order('created_at', { ascending: false }).limit(30),
+        supabase.from('users').select('id, name'),
+      ])
+      setActivities(acts || [])
+      const map = {}
+      if (users) users.forEach(u => { map[u.id] = u })
+      setUserMap(map)
       setLoading(false)
     }
-    fetch()
+    fetchData()
 
     const channel = supabase
       .channel('activity_feed_live')
@@ -72,6 +200,8 @@ export default function ActivityFeed() {
 
     return () => { supabase.removeChannel(channel) }
   }, [])
+
+  const visible = expanded ? activities : activities.slice(0, DEFAULT_VISIBLE)
 
   return (
     <div className="activity-feed">
@@ -87,18 +217,14 @@ export default function ActivityFeed() {
       )}
 
       <div className="feed-list">
-        {(expanded ? activities : activities.slice(0, DEFAULT_VISIBLE)).map((item, i) => {
-          const meta = TYPE_META[item.type] || { icon: '📌' }
-          return (
-            <div key={item.id} className="feed-item" style={{ animationDelay: `${i * 0.03}s` }}>
-              <span className="feed-icon">{meta.icon}</span>
-              <div className="feed-body">
-                <p className="feed-text">{formatText(item)}</p>
-                <span className="feed-time">{timeAgo(item.created_at)}</span>
-              </div>
-            </div>
-          )
-        })}
+        {visible.map((item, i) => (
+          <FeedItem
+            key={item.id}
+            item={item}
+            currentUser={currentUser}
+            userMap={userMap}
+          />
+        ))}
       </div>
 
       {activities.length > DEFAULT_VISIBLE && (

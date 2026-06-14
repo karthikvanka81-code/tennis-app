@@ -218,7 +218,7 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <ActivityFeed />
+            <ActivityFeed currentUser={user} />
 
             <div className="stats-grid" style={{ marginTop: 20 }}>
               <div className="stat-card">
