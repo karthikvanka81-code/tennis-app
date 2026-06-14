@@ -66,7 +66,7 @@
 .notif-clear-btn {
   background: none;
   border: none;
-  color: var(--c-secondary);
+  color: var(--c-text);
   font-size: 11px;
   cursor: pointer;
   font-family: var(--font);

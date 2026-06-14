@@ -170,7 +170,7 @@
   background: none;
   border: none;
   font-size: 13px;
-  color: var(--c-muted);
+  color: var(--c-secondary);
   cursor: pointer;
   padding: 2px 4px;
   border-radius: var(--r-sm);
@@ -437,11 +437,11 @@
 .delete-btn {
   padding: 6px 14px;
   background: transparent;
-  border: 1px solid var(--c-border);
+  border: 1px solid var(--c-border-light);
   border-radius: var(--r-md);
   font-size: 13px;
   font-weight: 500;
-  color: var(--c-secondary);
+  color: var(--c-text);
   cursor: pointer;
   font-family: var(--font);
   transition: var(--t-fast);

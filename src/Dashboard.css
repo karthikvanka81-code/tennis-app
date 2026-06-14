@@ -57,7 +57,7 @@
   padding: 5px 11px;
   background: none;
   border: none;
-  color: var(--c-secondary);
+  color: var(--c-text);
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
@@ -125,8 +125,8 @@
 .logout-btn {
   padding: 6px 14px;
   background: transparent;
-  color: var(--c-secondary);
-  border: 1px solid var(--c-border);
+  color: var(--c-text);
+  border: 1px solid var(--c-border-light);
   border-radius: var(--r-md);
   font-size: 13px;
   font-weight: 500;
@@ -306,7 +306,7 @@
     border: none;
     cursor: pointer;
     font-family: var(--font);
-    color: var(--c-muted);
+    color: var(--c-secondary);
     transition: color 0.15s ease;
     padding: 4px 0;
     -webkit-tap-highlight-color: transparent;
