@@ -5,10 +5,13 @@ import './Tournament.css'
 export default function TournamentDetail({ tournament, onBack, currentUser }) {
   const [participants, setParticipants] = useState([])
   const [matches, setMatches]           = useState([])
+  const [allUsers, setAllUsers]         = useState([])
   const [userMap, setUserMap]           = useState({})
   const [loading, setLoading]           = useState(true)
   const [activating, setActivating]     = useState(false)
   const [message, setMessage]           = useState('')
+  const [addingUserId, setAddingUserId] = useState('')
+  const [adding, setAdding]             = useState(false)
 
   useEffect(() => {
     fetchAll()
@@ -25,9 +28,39 @@ export default function TournamentDetail({ tournament, onBack, currentUser }) {
     const map = {}
     if (users) users.forEach(u => { map[u.id] = u })
     setUserMap(map)
+    setAllUsers(users || [])
     setParticipants(parts || [])
     setMatches(matchData || [])
     setLoading(false)
+  }
+
+  const handleForceAdd = async () => {
+    if (!addingUserId) return
+    setAdding(true)
+    setMessage('')
+
+    const participantIds = participants.map(p => p.user_id)
+    if (participantIds.includes(addingUserId)) {
+      // Already in — just confirm them
+      await supabase.from('tournament_participants')
+        .update({ confirmed: true })
+        .eq('tournament_id', tournament.id)
+        .eq('user_id', addingUserId)
+    } else {
+      await supabase.from('tournament_participants').insert([{
+        tournament_id: tournament.id,
+        user_id: addingUserId,
+        confirmed: true,
+        wins: 0,
+        losses: 0,
+        points: 0,
+      }])
+    }
+
+    setMessage(`${userMap[addingUserId]?.name || 'Player'} added as confirmed.`)
+    setAddingUserId('')
+    fetchAll()
+    setAdding(false)
   }
 
   const handleForceActivate = async () => {
@@ -55,9 +88,11 @@ export default function TournamentDetail({ tournament, onBack, currentUser }) {
   const typeLabel = { 'one-to-one': 'One-to-One', 'round-robin': 'Round Robin', 'knockout': 'Knockout' }
   const statusColor = { setup: 'var(--c-secondary)', active: '#00C896', completed: 'var(--c-primary)' }
 
-  const pending   = participants.filter(p => !p.confirmed)
-  const confirmed = participants.filter(p => p.confirmed)
-  const isAdmin   = tournament.admin_id === currentUser?.id
+  const pending         = participants.filter(p => !p.confirmed)
+  const confirmed       = participants.filter(p => p.confirmed)
+  const isAdmin         = tournament.admin_id === currentUser?.id
+  const participantIds  = participants.map(p => p.user_id)
+  const eligibleToAdd   = allUsers.filter(u => !participantIds.includes(u.id))
 
   const byRound = matches.reduce((acc, m) => {
     if (!acc[m.round]) acc[m.round] = []
@@ -113,6 +148,42 @@ export default function TournamentDetail({ tournament, onBack, currentUser }) {
             </div>
             {tournament.status === 'setup' && pending.length > 0 && (
               <p className="detail-hint">Waiting for {pending.length} player{pending.length !== 1 ? 's' : ''} to accept their invitation.</p>
+            )}
+
+            {isAdmin && tournament.status === 'setup' && eligibleToAdd.length > 0 && (
+              <div className="force-add-row">
+                <select
+                  value={addingUserId}
+                  onChange={e => setAddingUserId(e.target.value)}
+                  className="force-add-select"
+                >
+                  <option value="">Add player…</option>
+                  {eligibleToAdd.map(u => (
+                    <option key={u.id} value={u.id}>{u.name}</option>
+                  ))}
+                </select>
+                <button
+                  className="force-add-btn"
+                  onClick={handleForceAdd}
+                  disabled={!addingUserId || adding}
+                >
+                  {adding ? '…' : 'Add'}
+                </button>
+              </div>
+            )}
+            {isAdmin && tournament.status === 'setup' && pending.length > 0 && (
+              <button
+                className="confirm-all-btn"
+                onClick={async () => {
+                  await supabase.from('tournament_participants')
+                    .update({ confirmed: true })
+                    .eq('tournament_id', tournament.id)
+                  setMessage('All pending players marked as confirmed.')
+                  fetchAll()
+                }}
+              >
+                ✓ Confirm all pending players
+              </button>
             )}
           </div>
 
