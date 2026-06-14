@@ -8,7 +8,7 @@
   border: none;
   cursor: pointer;
   padding: 6px;
-  color: var(--c-secondary);
+  color: var(--c-heading);
   display: flex;
   align-items: center;
   transition: color 0.15s ease;

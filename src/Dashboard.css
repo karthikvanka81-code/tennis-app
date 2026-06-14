@@ -124,7 +124,7 @@
 
 .logout-btn {
   padding: 6px 14px;
-  background: transparent;
+  background: var(--c-bg);
   color: var(--c-text);
   border: 1px solid var(--c-border-light);
   border-radius: var(--r-md);

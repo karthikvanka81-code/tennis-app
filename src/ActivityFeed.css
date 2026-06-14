@@ -124,8 +124,8 @@
 }
 .feed-like-btn,
 .feed-comment-btn {
-  background: none;
-  border: 1px solid var(--c-border);
+  background: var(--c-bg);
+  border: 1px solid var(--c-border-light);
   border-radius: var(--r-full);
   padding: 3px 10px;
   font-size: 12px;
