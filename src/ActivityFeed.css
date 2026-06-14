@@ -100,3 +100,18 @@
   font-size: 11px;
   color: var(--c-muted);
 }
+
+.feed-toggle-btn {
+  width: 100%;
+  padding: 10px;
+  background: none;
+  border: none;
+  border-top: 1px solid var(--c-border);
+  color: var(--c-secondary);
+  font-size: 13px;
+  font-family: var(--font);
+  cursor: pointer;
+  transition: color 0.15s ease;
+  margin-top: 4px;
+}
+.feed-toggle-btn:hover { color: var(--c-primary); }

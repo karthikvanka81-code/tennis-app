@@ -44,9 +44,12 @@ function formatText(item) {
   }
 }
 
+const DEFAULT_VISIBLE = 3
+
 export default function ActivityFeed() {
   const [activities, setActivities] = useState([])
   const [loading, setLoading]       = useState(true)
+  const [expanded, setExpanded]     = useState(false)
 
   useEffect(() => {
     const fetch = async () => {
@@ -84,7 +87,7 @@ export default function ActivityFeed() {
       )}
 
       <div className="feed-list">
-        {activities.map((item, i) => {
+        {(expanded ? activities : activities.slice(0, DEFAULT_VISIBLE)).map((item, i) => {
           const meta = TYPE_META[item.type] || { icon: '📌' }
           return (
             <div key={item.id} className="feed-item" style={{ animationDelay: `${i * 0.03}s` }}>
@@ -97,6 +100,12 @@ export default function ActivityFeed() {
           )
         })}
       </div>
+
+      {activities.length > DEFAULT_VISIBLE && (
+        <button className="feed-toggle-btn" onClick={() => setExpanded(e => !e)}>
+          {expanded ? 'Show less ↑' : `View ${activities.length - DEFAULT_VISIBLE} more ↓`}
+        </button>
+      )}
     </div>
   )
 }
