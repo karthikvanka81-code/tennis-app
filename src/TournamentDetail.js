@@ -207,16 +207,27 @@ export default function TournamentDetail({ tournament, onBack, currentUser }) {
                     const p1 = userMap[m.player1_id]
                     const p2 = userMap[m.player2_id]
                     const isComplete = m.match_status === 'completed'
+                    const setScores = []
+                    if (m.set1_player1 != null) setScores.push(`${m.set1_player1}–${m.set1_player2}`)
+                    if (m.set2_player1 != null) setScores.push(`${m.set2_player1}–${m.set2_player2}`)
+                    if (m.set3_player1 != null) setScores.push(`${m.set3_player1}–${m.set3_player2}`)
                     return (
                       <div key={m.id} className={`match-row ${isComplete ? 'match-done' : ''}`}>
                         <span className={m.winner_id === m.player1_id ? 'match-winner-name' : 'match-player-name'}>
                           {p1?.name || 'TBD'}
                         </span>
-                        <span className="match-vs">
-                          {isComplete
-                            ? `${m.player1_score ?? '—'} – ${m.player2_score ?? '—'}`
-                            : 'vs'}
-                        </span>
+                        <div className="match-score-col">
+                          {isComplete ? (
+                            <>
+                              <span className="match-set-count">{m.player1_score ?? 0}–{m.player2_score ?? 0}</span>
+                              {setScores.length > 0 && (
+                                <span className="match-game-scores">{setScores.join(', ')}</span>
+                              )}
+                            </>
+                          ) : (
+                            <span className="match-vs">vs</span>
+                          )}
+                        </div>
                         <span className={m.winner_id === m.player2_id ? 'match-winner-name' : 'match-player-name'}>
                           {p2?.name || 'TBD'}
                         </span>

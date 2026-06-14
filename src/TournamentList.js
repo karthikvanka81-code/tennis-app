@@ -127,7 +127,7 @@ export default function TournamentList({ user }) {
                       Join
                     </button>
                   ) : null}
-                  <button className="view-detail-btn">View →</button>
+                  <button className="view-detail-btn" onClick={() => setDetailTournament(tournament)}>View →</button>
                 </div>
               </div>
             )

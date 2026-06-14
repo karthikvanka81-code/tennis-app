@@ -212,8 +212,28 @@ export default function MatchRecording({ user }) {
         }))
       }
 
-      // 6. Knockout bracket advancement
       const tournament = tournaments.find(t => t.id === tournamentId)
+
+      // One-to-one: auto-create the next match so the season continues
+      if (tournament?.tournament_type === 'one-to-one') {
+        const { data: existing } = await supabase
+          .from('matches')
+          .select('match_order')
+          .eq('tournament_id', tournamentId)
+          .order('match_order', { ascending: false })
+          .limit(1)
+        const nextOrder = existing?.[0]?.match_order != null ? existing[0].match_order + 1 : 1
+        await supabase.from('matches').insert([{
+          tournament_id: tournamentId,
+          player1_id: selectedMatch.player1_id,
+          player2_id: selectedMatch.player2_id,
+          match_status: 'pending',
+          round: 1,
+          match_order: nextOrder,
+        }])
+      }
+
+      // Knockout bracket advancement
       if (tournament?.tournament_type === 'knockout' && selectedMatch.round != null) {
         await advanceKnockoutWinner(
           tournamentId,
