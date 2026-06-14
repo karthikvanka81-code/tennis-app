@@ -111,7 +111,8 @@
   width: 100%;
   padding: 13px 20px;
   background: var(--c-primary);
-  color: white;
+  color: #070D1A !important;
+  color: #070D1A;
   border: none;
   border-radius: var(--r-md);
   font-size: 14px;
@@ -367,6 +368,7 @@
   width: 6px;
   height: 6px;
   background: var(--c-primary);
+  color: #070D1A !important;
   border-radius: 50%;
   flex-shrink: 0;
 }

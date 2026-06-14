@@ -86,6 +86,7 @@
   flex: 1;
   padding: 12px;
   background: var(--c-primary);
+  color: #070D1A !important;
   border: none;
   border-radius: var(--r-md);
   font-size: 14px;
@@ -102,7 +103,7 @@
 }
 .confirm-ok-btn.danger {
   background: var(--c-error-bar);
-  color: white;
+  color: #070D1A;
   box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);
 }
 .confirm-ok-btn.danger:hover {
