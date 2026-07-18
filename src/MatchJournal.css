@@ -458,3 +458,75 @@
   .journal-form-row  { grid-template-columns: 1fr; }
   .opponent-stats-banner { flex-wrap: wrap; gap: 10px; }
 }
+
+/* ── AI Coach button ── */
+.ai-coach-btn {
+  padding: 7px 16px;
+  background: var(--c-primary);
+  color: #070D1A !important;
+  border: none;
+  border-radius: var(--r-full);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: var(--font);
+  transition: var(--t-fast);
+  white-space: nowrap;
+}
+.ai-coach-btn:hover { background: var(--c-primary-hover); }
+
+/* ── Coaching panel ── */
+.coaching-panel {
+  background: var(--c-surface);
+  border: 1px solid var(--c-primary);
+  border-radius: var(--r-xl);
+  margin-bottom: 24px;
+  overflow: hidden;
+  animation: fadeUp 0.25s ease both;
+}
+.coaching-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--c-border);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--c-primary);
+}
+.coaching-close {
+  background: none;
+  border: none;
+  color: var(--c-text);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px 6px;
+  border-radius: var(--r-md);
+  transition: var(--t-fast);
+}
+.coaching-close:hover { background: var(--c-bg); }
+.coaching-loading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 18px;
+  color: var(--c-secondary);
+  font-size: 13px;
+}
+.coaching-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--c-border);
+  border-top-color: var(--c-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  flex-shrink: 0;
+}
+.coaching-body {
+  padding: 16px 18px;
+  font-size: 13px;
+  color: var(--c-text);
+  line-height: 1.7;
+}
+.coaching-body p { margin: 0 0 6px; }
+.coaching-body p:empty { display: none; }
