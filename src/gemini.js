@@ -1,5 +1,5 @@
 const API_KEY = process.env.REACT_APP_GEMINI_KEY
-const ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`
+const ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`
 
 export async function getCoachingAdvice(entries) {
   if (!entries || entries.length === 0) throw new Error('No journal entries to analyse.')
