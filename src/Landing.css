@@ -113,7 +113,7 @@
 .landing-btn-secondary {
   padding: 14px 40px;
   background: transparent;
-  color: #cdf520;
+  color: #cdf520 !important;
   border: 1.5px solid #cdf520;
   border-radius: 999px;
   font-size: 15px;

@@ -187,8 +187,16 @@ code {
   line-height: 1.5;
 }
 
-/* ── Global: dark text on all gold/primary buttons for readability ── */
-[style*="background: var(--c-primary)"],
-[class*="btn"]:not(.google-btn):not(.toggle-btn):not(.forgot-btn):not(.back-btn):not(.remove-set-btn):not(.confirm-all-btn):not(.lb-toggle-btn):not(.decline-btn):not(.cancel-btn) {
-  color: #070D1A;
+/* ── Dark text ONLY on gold/primary-background buttons ── */
+.record-btn,
+.submit-btn,
+.invite-alert-btn,
+.activate-btn,
+.force-add-btn,
+.comment-submit,
+.chat-send-btn,
+.schedule-confirm-btn,
+.landing-btn-primary,
+[style*="background: var(--c-primary)"] {
+  color: #070D1A !important;
 }
