@@ -3,8 +3,8 @@ import { supabase } from './supabaseClient'
 import { friendlyError } from './errorMessages'
 import './Auth.css'
 
-export default function Auth() {
-  const [isLogin, setIsLogin] = useState(true)
+export default function Auth({ initialMode = 'signin' }) {
+  const [isLogin, setIsLogin] = useState(initialMode !== 'signup')
   const [email, setEmail]     = useState('')
   const [password, setPassword] = useState('')
   const [name, setName]       = useState('')
