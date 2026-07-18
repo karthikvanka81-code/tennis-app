@@ -20,10 +20,6 @@ const BOUNCE_HEIGHT  = 28    // px bounce up after landing
 const BOUNCE_DURATION = 250  // ms for bounce
 const PAUSE_DURATION  = 380  // ms pause at city
 
-// Ease in-out cubic
-function easeInOut(t) {
-  return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t
-}
 // Bounce ease: starts fast, decelerates
 function easeFall(t) {
   return 1 - Math.pow(1 - t, 2.2)
