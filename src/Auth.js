@@ -72,6 +72,7 @@ export default function Auth({ initialMode = 'signin' }) {
 
   return (
     <div className="auth-container">
+      <div className="auth-logo">Ace</div>
       <div className="auth-card">
         <h1>{isLogin ? 'Welcome back' : 'Create account'}</h1>
 
