@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from './supabaseClient'
 import ConfirmDialog from './ConfirmDialog'
 import { friendlyError } from './errorMessages'
-import { getCoachingAdvice } from './gemini'
 import './MatchJournal.css'
 
 const EMPTY_FORM = { opponentName: '', result: 'Win', score: '', notes: '', matchDate: new Date().toISOString().split('T')[0] }
@@ -19,9 +18,6 @@ export default function MatchJournal({ user }) {
   const [searchQuery, setSearchQuery]   = useState('')
   const [selectedOpponent, setSelectedOpponent] = useState(null)
   const [showSuggestions, setShowSuggestions]   = useState(false)
-  const [coaching, setCoaching]         = useState('')
-  const [coachingLoading, setCoachingLoading] = useState(false)
-  const [showCoaching, setShowCoaching] = useState(false)
 
   const fetchEntries = useCallback(async () => {
     const { data, error } = await supabase
@@ -141,64 +137,11 @@ export default function MatchJournal({ user }) {
       />
       <div className="journal-header">
         <h2>{editingId ? 'Edit Match' : 'Match Journal'}</h2>
-        <div style={{ display: 'flex', gap: 8 }}>
-          {editingId && (
-            <button className="cancel-edit-btn" onClick={resetForm}>Cancel Edit</button>
-          )}
-          {!editingId && entries.length > 0 && (
-            <button className="ai-coach-btn" onClick={async () => {
-              setShowCoaching(true)
-              setCoachingLoading(true)
-              setCoaching('')
-              try {
-                const advice = await getCoachingAdvice(entries)
-                setCoaching(advice)
-              } catch (e) {
-                setCoaching(`Error: ${e.message}`)
-              }
-              setCoachingLoading(false)
-            }}>
-              🎾 AI Coach
-            </button>
-          )}
-        </div>
+        {editingId && (
+          <button className="cancel-edit-btn" onClick={resetForm}>Cancel Edit</button>
+        )}
       </div>
 
-      {showCoaching && (
-        <div className="coaching-panel">
-          <div className="coaching-header">
-            <span>🤖 AI Coaching Advice</span>
-            <button className="coaching-close" onClick={() => setShowCoaching(false)}>✕</button>
-          </div>
-          {coachingLoading ? (
-            <div className="coaching-loading">
-              <div className="coaching-spinner" />
-              Analysing your {entries.length} match entries…
-            </div>
-          ) : (
-            <div className="coaching-body">
-              {coaching.split('\n').map((line, i) => (
-                <p key={i} style={{ margin: line.startsWith('**') ? '12px 0 4px' : '0 0 6px' }}>
-                  {line.replace(/\*\*/g, '')}
-                </p>
-              ))}
-              <button className="ai-coach-btn" style={{ marginTop: 16 }} onClick={async () => {
-                setCoachingLoading(true)
-                setCoaching('')
-                try {
-                  const advice = await getCoachingAdvice(entries)
-                  setCoaching(advice)
-                } catch (e) {
-                  setCoaching(`Error: ${e.message}`)
-                }
-                setCoachingLoading(false)
-              }}>
-                ↻ Refresh advice
-              </button>
-            </div>
-          )}
-        </div>
-      )}
 
       {message.text && (
         <div className={message.type === 'error' ? 'error-message' : 'success-message'}>
