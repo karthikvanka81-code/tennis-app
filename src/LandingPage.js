@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import aceLogo from './ace-logo.svg'
 import './Landing.css'
 
 const CX = 160  // center x
@@ -103,7 +104,7 @@ export default function LandingPage({ onEnter }) {
       <div className="landing-inner-v">
         {/* Logo */}
         <div className={`landing-logo ${isDone ? 'logo-big' : ''}`}>
-          <span className="landing-ace">Ace</span>
+          <img src={aceLogo} alt="Ace" className="landing-ace-logo" />
           {isDone && <p className="landing-tagline">Your tennis season. Tracked.</p>}
         </div>
 

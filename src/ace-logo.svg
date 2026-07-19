@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 112">
+  <!--
+    Outer A: two legs + bottom gap
+    Inner hole: left edge straight, right edge is the serve-arc bezier
+    Ball circle: punched at arc terminus via evenodd
+  -->
+  <path
+    fill="#cdf520"
+    fill-rule="evenodd"
+    d="
+      M50,5 L5,107 L27,107 L40,72 L60,72 L73,107 L95,107 Z
+      M50,26 C69,38 68,57 58,66 L37,66 Z
+      M61.5,66 a3.5,3.5 0 1,0 -7,0 a3.5,3.5 0 1,0 7,0
+    "
+  />
+</svg>

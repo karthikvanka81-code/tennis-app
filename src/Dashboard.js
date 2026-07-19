@@ -14,6 +14,7 @@ import MatchJournal from './MatchJournal'
 import ActivityFeed from './ActivityFeed'
 import NotificationBell from './NotificationBell'
 import AdminDashboard from './AdminDashboard'
+import aceLogo from './ace-logo.svg'
 import './Dashboard.css'
 
 const HomeIcon = () => (
@@ -173,7 +174,7 @@ export default function Dashboard() {
       <nav className="dashboard-nav">
         <div className="nav-content">
           <div className="nav-left">
-            <h1 className="logo">🎾 Ace</h1>
+            <img src={aceLogo} alt="Ace" className="logo" />
             <div className="nav-links">
               {navItems.map(item => (
                 <button

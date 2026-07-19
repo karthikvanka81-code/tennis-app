@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { supabase } from './supabaseClient'
 import { friendlyError } from './errorMessages'
+import aceLogo from './ace-logo.svg'
 import './Auth.css'
 
 export default function Auth({ initialMode = 'signin' }) {
@@ -72,7 +73,7 @@ export default function Auth({ initialMode = 'signin' }) {
 
   return (
     <div className="auth-container">
-      <div className="auth-logo">Ace</div>
+      <img src={aceLogo} alt="Ace" className="auth-logo" />
       <div className="auth-card">
         <h1>{isLogin ? 'Welcome back' : 'Create account'}</h1>
 
